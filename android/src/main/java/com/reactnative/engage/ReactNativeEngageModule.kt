@@ -1,4 +1,4 @@
-package com.proximipro.engage
+package com.reactnative.engage
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatActivity
