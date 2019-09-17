@@ -9,15 +9,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-react-native-engage.git",
-    "baseUrl": "https://github.com/github_account/react-native-react-native-engage"
+    "url": "git+https://github.com/github_account/react-native-engage.git",
+    "baseUrl": "https://github.com/github_account/react-native-engage"
   },
   "keywords": [
     "react-native"
   ],
   "author": {
-    "name": "Simform Solutions",
-    "email": "brijesh.s@simformsolutions.com"
+    "name": "Your Name",
+    "email": "yourname@email.com"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",

@@ -1,7 +1,7 @@
-#import "ReactNativeEngage.h"
+#import "Engage.h"
 
 
-@implementation ReactNativeEngage
+@implementation Engage
 
 RCT_EXPORT_MODULE()
 

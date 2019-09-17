@@ -1,4 +1,4 @@
-package com.reactnative.engage
+package com.reactlibrary
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatActivity
@@ -13,14 +13,15 @@ import com.proximipro.engage.android.util.Gender
 import com.proximipro.engage.android.util.InitializationCallback
 import java.util.*
 
-class ReactNativeEngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
+class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
     private val engageInstance : Engage? by lazy{
         Engage.getInstance()
     }
 
+
     override fun getName(): String {
-        return "ReactNativeEngage"
+        return "Engage"
     }
 
     @ReactMethod
@@ -95,72 +96,72 @@ class ReactNativeEngageModule(private val reactContext: ReactApplicationContext)
         }
     }
 
-        @ReactMethod
-        fun stopScan(promise: Promise) {
-            try {
-                engageInstance?.stopScan()
-                promise.resolve(true)
-            } catch (e: Exception) {
-                promise.resolve(e)
-            }
+    @ReactMethod
+    fun stopScan(promise: Promise) {
+        try {
+            engageInstance?.stopScan()
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.resolve(e)
+        }
+    }
+
+    @ReactMethod
+    fun updateApiKey(apiKey: String, promise: Promise) {
+        try {
+            engageInstance?.updateApiKey(apiKey)
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject(e)
+        }
+    }
+
+    @ReactMethod
+    fun setRegionParams(uuid: String, regionIdentifier: String) {
+        try {
+            engageInstance?.setRegionParams(uuid, regionIdentifier)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
-        @ReactMethod
-        fun updateApiKey(apiKey: String, promise: Promise) {
-            try {
-                engageInstance?.updateApiKey(apiKey)
-                promise.resolve(true)
-            } catch (e: Exception) {
-                promise.reject(e)
-            }
-        }
+    }
 
-        @ReactMethod
-        fun setRegionParams(uuid: String, regionIdentifier: String) {
-            try {
-                engageInstance?.setRegionParams(uuid, regionIdentifier)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-
-        }
-
-        @ReactMethod
-        fun updateBeaconUUID(uuidString: String, promise: Promise) {
-            try {
+    @ReactMethod
+    fun updateBeaconUUID(uuidString: String, promise: Promise) {
+        try {
 //            engageInstance?.updateBeaconUUID(uuidString)
-                promise.resolve(true)
-            } catch (e: Exception) {
-                promise.reject(e)
-            }
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject(e)
         }
+    }
 
-        @ReactMethod
-        fun logout(promise: Promise) {
-            try {
-                engageInstance?.logout()
-                promise.resolve(true)
-            } catch (e: Exception) {
-                promise.reject(e)
-            }
+    @ReactMethod
+    fun logout(promise: Promise) {
+        try {
+            engageInstance?.logout()
+            promise.resolve(true)
+        } catch (e: Exception) {
+            promise.reject(e)
         }
+    }
 
-        @ReactMethod
-        fun registerUser(apiKey: String,
-                         birthDate: String,
-                         gender: String? = null,
-                         feature1: String? = null,
-                         feature2: String? = null,
-                         feature3: String? = null,
-                         callback: Callback) {
-            val date = Date(birthDate.toLong())
-            val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
-            engageInstance?.registerUser(apiKey, date, genderType, feature1, feature2, feature3)?.onSuccess {
-                callback.invoke(true)
-            }?.onFailure {
-                callback.invoke(false)
-            }
+    @ReactMethod
+    fun registerUser(apiKey: String,
+                     birthDate: String,
+                     gender: String? = null,
+                     feature1: String? = null,
+                     feature2: String? = null,
+                     feature3: String? = null,
+                     callback: Callback) {
+        val date = Date(birthDate.toLong())
+        val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
+        engageInstance?.registerUser(apiKey, date, genderType, feature1, feature2, feature3)?.onSuccess {
+            callback.invoke(true)
+        }?.onFailure {
+            callback.invoke(false)
         }
+    }
 
     @ReactMethod
     fun config(promise: Promise) {
@@ -174,5 +175,4 @@ class ReactNativeEngageModule(private val reactContext: ReactApplicationContext)
             promise.reject(e)
         }
     }
-
 }

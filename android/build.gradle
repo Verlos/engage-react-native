@@ -5,6 +5,7 @@ buildscript {
     repositories {
         google()
         jcenter()
+        mavenCentral()
         maven { url 'https://jitpack.io' }
     }
 
@@ -18,21 +19,19 @@ buildscript {
 
 apply plugin: 'com.android.library'
 apply plugin: 'maven'
-apply plugin: "kotlin-android"
-apply plugin: "kotlin-android-extensions"
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+
 
 // Matches values in recent template from React Native 0.59 / 0.60
 // https://github.com/facebook/react-native/blob/0.59-stable/template/android/build.gradle#L5-L9
 // https://github.com/facebook/react-native/blob/0.60-stable/template/android/build.gradle#L5-L9
 def DEFAULT_COMPILE_SDK_VERSION = 29
-def DEFAULT_BUILD_TOOLS_VERSION = "29.0.0"
 def DEFAULT_MIN_SDK_VERSION = 21
 def DEFAULT_TARGET_SDK_VERSION = 29
 
-
 android {
   compileSdkVersion safeExtGet('compileSdkVersion', DEFAULT_COMPILE_SDK_VERSION)
-  buildToolsVersion safeExtGet('buildToolsVersion', DEFAULT_BUILD_TOOLS_VERSION)
 
   defaultConfig {
     minSdkVersion safeExtGet('minSdkVersion', DEFAULT_MIN_SDK_VERSION)
@@ -54,8 +53,8 @@ allprojects {
             // https://github.com/facebook/react-native/blob/0.60-stable/template/android/build.gradle#L28
             url "$projectDir/../node_modules/react-native/android"
         }
-        maven { url 'https://jitpack.io' }
         mavenCentral()
+        maven { url 'https://jitpack.io' }
         jcenter()
         google()
     }
@@ -64,6 +63,8 @@ allprojects {
 dependencies {
     implementation "com.facebook.react:react-native:${safeExtGet('reactnativeVersion', '+')}"
     implementation 'com.proximipro:engage-android:develop-SNAPSHOT'
+    implementation "com.squareup.okhttp3:okhttp-urlconnection:4.0.1"
+    implementation "androidx.appcompat:appcompat:1.1.0"
 }
 
 def configureReactNativePom(def pom) {
@@ -73,7 +74,7 @@ def configureReactNativePom(def pom) {
         name packageJson.title
         artifactId packageJson.name
         version = packageJson.version
-        group = "com.reactnative.engage"
+        group = "com.reactlibrary"
         description packageJson.description
         url packageJson.repository.baseUrl
 
