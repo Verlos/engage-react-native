@@ -5,7 +5,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.proximipro.engage.android.Engage
 import com.proximipro.engage.android.core.BeaconScanResultListener
-import com.proximipro.engage.android.core.EngagePref
+import com.proximipro.engage.android.core.EngageConfig
 import com.proximipro.engage.android.core.InitializationRequest
 import com.proximipro.engage.android.model.ProBeacon
 import com.proximipro.engage.android.model.common.Rule
@@ -32,117 +32,120 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     //SDK intialization
     @ReactMethod
-    fun initialize(apiKey: String, appName: String, regionId: String, clientId: String, promise: Promise) {
+    fun initialize(apiKey: String, appName: String, regionId: String, clientId: String, uuid: String, callback: Callback) {
         try {
-            var initRequest = InitializationRequest(apiKey, appName, regionId, clientId)
-            Engage.initialize(application = reactContext.applicationContext as Application, request = initRequest, callback = object : InitializationCallback() {
+            var initRequest = InitializationRequest(apiKey, appName, regionId, clientId, uuid)
+            Engage.initialize(reactContext.applicationContext as Application, request = initRequest, callback = object : InitializationCallback() {
                 override fun onError(e: Throwable) {
                     super.onError(e)
-                    promise.resolve(false)
+                    callback.invoke(false)
                 }
 
                 override fun onSuccess() {
                     super.onSuccess()
-                    promise.resolve(true)
+                    callback.invoke(true)
                 }
             })
         }catch (e: Exception){
-            promise.reject(e)
+
         }
+        Engage.getInstance()?.config()
 
     }
 
     @ReactMethod
-    fun isInitialized(promise: Promise){
+    fun isInitialized(callback: Callback){
         try {
-            promise.resolve(Engage.isInitialized);
+            callback.invoke(Engage.isInitialized)
         }catch (e: Exception){
-            promise.reject(e)
+            callback.invoke(false)
         }
 
     }
 
     @ReactMethod
-    fun isScanOnGoing(promise: Promise){
+    fun isScanOnGoing(callback: Callback){
         try {
-            promise.resolve(engageInstance?.isScanOnGoing())
+            callback.invoke(engageInstance?.isScanOnGoing())
         }catch (e: Exception){
-            promise.reject(e)
+            callback.invoke(false)
         }
     }
 
     @ReactMethod
-    fun startScan(onBeaconCamped: Promise, onBeaconExit: Promise, onRuleTriggered: Promise) {
+    fun startScan(onBeaconCamped: Callback, onBeaconExit: Callback, onRuleTriggered: Callback) {
         try {
             engageInstance?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
                 override fun onBeaconCamped(beacon: ProBeacon) {
                     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    onBeaconCamped.resolve(true)
+                    onBeaconCamped.invoke(true)
                 }
 
                 override fun onBeaconExit(beacon: ProBeacon) {
                     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    onBeaconExit.resolve(true)
+                    onBeaconExit.invoke(true)
                 }
 
                 override fun onRuleTriggered(rule: Rule) {
                     TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    onRuleTriggered.resolve(true)
+                    onRuleTriggered.invoke(true)
                 }
             })
         } catch (e: Exception) {
-            onBeaconCamped.reject(e)
 
         }
     }
 
     @ReactMethod
-    fun stopScan(promise: Promise) {
+    fun stopScan(callback: Callback) {
         try {
             engageInstance?.stopScan()
-            promise.resolve(true)
+            callback.invoke(true)
         } catch (e: Exception) {
-            promise.resolve(e)
+            callback.invoke(false)
         }
     }
 
     @ReactMethod
-    fun updateApiKey(apiKey: String, promise: Promise) {
+    fun updateApiKey(apiKey: String, callback: Callback) {
         try {
-            engageInstance?.updateApiKey(apiKey)
-            promise.resolve(true)
+            engageInstance?.updateApiKey(apiKey){
+                callback.invoke(it)
+            }
         } catch (e: Exception) {
-            promise.reject(e)
+            callback.invoke(false)
         }
     }
 
     @ReactMethod
-    fun setRegionParams(uuid: String, regionIdentifier: String) {
+    fun setRegionParams(uuid: String, regionIdentifier: String,callback: Callback) {
         try {
             engageInstance?.setRegionParams(uuid, regionIdentifier)
+            callback.invoke(true)
         } catch (e: Exception) {
+            callback.invoke(false)
             e.printStackTrace()
         }
 
     }
 
     @ReactMethod
-    fun updateBeaconUUID(uuidString: String, promise: Promise) {
+    fun updateBeaconUUID(uuidString: String, callback: Callback) {
         try {
-//            engageInstance?.updateBeaconUUID(uuidString)
-            promise.resolve(true)
+            engageInstance?.updateBeaconUUID(uuidString)
+            callback.invoke(true)
         } catch (e: Exception) {
-            promise.reject(e)
+            callback.invoke(false)
         }
     }
 
     @ReactMethod
-    fun logout(promise: Promise) {
+    fun logout(callback: Callback) {
         try {
             engageInstance?.logout()
-            promise.resolve(true)
+            callback.invoke(true)
         } catch (e: Exception) {
-            promise.reject(e)
+            callback.invoke(false)
         }
     }
 
@@ -150,29 +153,35 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     fun registerUser(apiKey: String,
                      birthDate: String,
                      gender: String? = null,
-                     feature1: String? = null,
-                     feature2: String? = null,
-                     feature3: String? = null,
                      callback: Callback) {
         val date = Date(birthDate.toLong())
         val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
-        engageInstance?.registerUser(apiKey, date, genderType, feature1, feature2, feature3)?.onSuccess {
-            callback.invoke(true)
+        engageInstance?.registerUser(apiKey, date, genderType)?.onSuccess {
+            callback.invoke(it)
         }?.onFailure {
-            callback.invoke(false)
+            callback.invoke(it)
         }
+
     }
 
     @ReactMethod
-    fun config(promise: Promise) {
+    fun config(callback: Callback) {
         try {
-            var en = engageInstance?.config() as EngagePref
+            var en = engageInstance?.config() as EngageConfig
             val result = Arguments.createMap()
-            result.putString("apiKey", en.getApiKey())
-            result.putString("beaconUUID", en.getBeaconUuid())
-            promise.resolve(result)
+            result.putString("apiKey", en.apiKey)
+            result.putString("appName", en.appName)
+            result.putString("beaconUUID", en.beaconUUID)
+            result.putString("clientId", en.clientId)
+            result.putString("regionId", en.regionId)
+            result.putBoolean("isBackgroundModeEnabled", en.isBackgroundModeEnabled)
+            result.putBoolean("isLocationBasedContentEnabled", en.isLocationBasedContentEnabled)
+            result.putBoolean("isNotificationEnabled", en.isNotificationEnabled)
+            result.putBoolean("isUserRegistered", en.isUserRegistered)
+            result.putString("pendingIntentClassName", en.pendingIntentClassName)
+            callback.invoke(result)
         } catch (e: Exception) {
-            promise.reject(e)
+
         }
     }
 }
