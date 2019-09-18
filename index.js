@@ -18,5 +18,3 @@ export default {
   config: Engage.config,
   registerUser: registerUser
 };
-
-export default Engage;
