@@ -1,10 +1,10 @@
 package com.reactlibrary
 
 import android.app.Application
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity
-import androidx.work.Configuration
-import androidx.work.WorkManager
+import androidx.appcompat.app.AppCompatActivity 
 import com.facebook.react.bridge.*
 import com.proximipro.engage.android.Engage
 import com.proximipro.engage.android.core.BeaconScanResultListener
@@ -14,14 +14,11 @@ import com.proximipro.engage.android.model.ProBeacon
 import com.proximipro.engage.android.model.common.Rule
 import com.proximipro.engage.android.util.Gender
 import com.proximipro.engage.android.util.InitializationCallback
-import timber.log.Timber
 import java.util.*
 
 class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    init {
-        Timber.plant(Timber.DebugTree())
-    }
+
 
     private val engageInstance: Engage? by lazy {
         Engage.getInstance()
