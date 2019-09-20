@@ -1,7 +1,10 @@
 package com.reactlibrary
 
 import android.app.Application
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.work.Configuration
+import androidx.work.WorkManager
 import com.facebook.react.bridge.*
 import com.proximipro.engage.android.Engage
 import com.proximipro.engage.android.core.BeaconScanResultListener
@@ -11,11 +14,16 @@ import com.proximipro.engage.android.model.ProBeacon
 import com.proximipro.engage.android.model.common.Rule
 import com.proximipro.engage.android.util.Gender
 import com.proximipro.engage.android.util.InitializationCallback
+import timber.log.Timber
 import java.util.*
 
 class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-    private val engageInstance : Engage? by lazy{
+    init {
+        Timber.plant(Timber.DebugTree())
+    }
+
+    private val engageInstance: Engage? by lazy {
         Engage.getInstance()
     }
 
@@ -46,54 +54,60 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
                     callback.invoke(true)
                 }
             })
-        }catch (e: Exception){
-
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
-        Engage.getInstance()?.config()
 
     }
 
     @ReactMethod
-    fun isInitialized(callback: Callback){
+    fun isInitialized(callback: Callback) {
         try {
             callback.invoke(Engage.isInitialized)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             callback.invoke(false)
         }
 
     }
 
     @ReactMethod
-    fun isScanOnGoing(callback: Callback){
+    fun isScanOnGoing(callback: Callback) {
         try {
             callback.invoke(engageInstance?.isScanOnGoing())
-        }catch (e: Exception){
+        } catch (e: Exception) {
             callback.invoke(false)
         }
     }
 
     @ReactMethod
-    fun startScan(onBeaconCamped: Callback, onBeaconExit: Callback, onRuleTriggered: Callback) {
-        try {
-            engageInstance?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
-                override fun onBeaconCamped(beacon: ProBeacon) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    onBeaconCamped.invoke(true)
-                }
+    fun startScan(onBeaconCamped: Callback) {
+        Handler(Looper.getMainLooper()).post {
+            try {
+                engageInstance?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
+                    override fun onBeaconCamped(beacon: ProBeacon) {
+                        Log.e("Beacon Details", beacon.toString())
+                        val beaconInfo = Arguments.createMap()
+                        beaconInfo.putString("uuid", beacon.uuid)
+                        beaconInfo.putInt("major", beacon.major)
+                        beaconInfo.putInt("minor", beacon.minor)
+                        beaconInfo.putInt("rssi", beacon.rssi)
+                        onBeaconCamped.invoke(beaconInfo)
+                    }
 
-                override fun onBeaconExit(beacon: ProBeacon) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    onBeaconExit.invoke(true)
-                }
+                    override fun onBeaconExit(beacon: ProBeacon) {
+                        // onBeaconExit.invoke(true)
+                    }
 
-                override fun onRuleTriggered(rule: Rule) {
-                    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-                    onRuleTriggered.invoke(true)
-                }
-            })
-        } catch (e: Exception) {
-
+                    override fun onRuleTriggered(rule: Rule) {
+                        //onRuleTriggered.invoke(true)
+                    }
+                })
+            } catch (e: Exception) {
+                Log.e("Exception", "Test------------")
+                e.printStackTrace()
+            }
         }
+
     }
 
     @ReactMethod
@@ -109,7 +123,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun updateApiKey(apiKey: String, callback: Callback) {
         try {
-            engageInstance?.updateApiKey(apiKey){
+            engageInstance?.updateApiKey(apiKey) {
                 callback.invoke(it)
             }
         } catch (e: Exception) {
@@ -118,7 +132,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     }
 
     @ReactMethod
-    fun setRegionParams(uuid: String, regionIdentifier: String,callback: Callback) {
+    fun setRegionParams(uuid: String, regionIdentifier: String, callback: Callback) {
         try {
             engageInstance?.setRegionParams(uuid, regionIdentifier)
             callback.invoke(true)

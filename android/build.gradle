@@ -64,7 +64,10 @@ dependencies {
     implementation "com.facebook.react:react-native:${safeExtGet('reactnativeVersion', '+')}"
     implementation "com.squareup.okhttp3:okhttp-urlconnection:4.0.1"
     implementation 'com.proximipro:engage-android:0.0.2'
-    implementation "androidx.appcompat:appcompat:1.1.0"
+    implementation "androidx.appcompat:appcompat:1.0.2"
+    implementation "org.altbeacon:android-beacon-library:2.16.3"
+    implementation "androidx.work:work-runtime-ktx:2.2.0"
+    implementation 'com.jakewharton.timber:timber:4.7.1'
 }
 
 def configureReactNativePom(def pom) {

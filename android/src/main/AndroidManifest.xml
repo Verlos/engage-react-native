@@ -1,4 +1,84 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.reactlibrary">
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.reactlibrary">
+    <application
+        tools:node="replace">
+        <service android:name="androidx.work.impl.background.systemjob.SystemJobService"
+            android:enabled="true"
+            android:exported="false"
+            />
+
+        <activity
+            android:name="com.proximipro.engage.android.core.LocationSettingsActivity"
+            android:launchMode="singleTask"
+            />
+
+        <receiver
+            android:name="com.proximipro.engage.android.core.LocationBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.proximipro.engage.android.receiver.LocationBroadcastReceiver.action.PROCESS_UPDATES" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name="com.proximipro.engage.android.receiver.BootBroadcastReceiver"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name="com.proximipro.engage.android.receiver.ServiceStopBroadcastReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.proximipro.engage.android.receiver.ServiceStopBroadcastReceiver" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name="com.proximipro.engage.android.receiver.BackgroundScanResultReceiver"
+            android:enabled="true"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.proximipro.engage.android.receiver.BackgroundScanResultReceiver" />
+            </intent-filter>
+        </receiver>
+
+        <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.ACTION_POWER_CONNECTED"/>
+                <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED"/>
+            </intent-filter>
+        </receiver>
+
+        <service android:enabled="true"
+            android:exported="false"
+            android:isolatedProcess="false"
+            android:label="beacon"
+            android:name="org.altbeacon.beacon.service.BeaconService"
+            />
+
+        <service android:name="org.altbeacon.beacon.BeaconIntentProcessor"
+            android:enabled="true"
+            android:exported="false"
+            />
+
+        <service android:name="org.altbeacon.beacon.service.ScanJob"
+            android:permission="android.permission.BIND_JOB_SERVICE">
+            <meta-data android:name="immediateScanJobId" android:value="208352939" />
+            <meta-data android:name="periodicScanJobId" android:value="208352940" />
+        </service>
+
+        <service android:name="org.altbeacon.bluetooth.BluetoothTestJob"
+            android:permission="android.permission.BIND_JOB_SERVICE" >
+            <meta-data android:name="jobId" android:value="1799803768"/>
+        </service>
+        <meta-data android:name="com.google.android.gms.version" android:value="12451000" />
+    </application>
 
 </manifest>
