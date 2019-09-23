@@ -6,6 +6,7 @@ import android.os.Looper
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity 
 import com.facebook.react.bridge.*
+import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.proximipro.engage.android.Engage
 import com.proximipro.engage.android.core.BeaconScanResultListener
 import com.proximipro.engage.android.core.EngageConfig
@@ -18,12 +19,9 @@ import java.util.*
 
 class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
-
-
     private val engageInstance: Engage? by lazy {
         Engage.getInstance()
     }
-
 
     override fun getName(): String {
         return "Engage"
@@ -54,7 +52,6 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
     }
 
     @ReactMethod
@@ -77,22 +74,33 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     }
 
     @ReactMethod
-    fun startScan(onBeaconCamped: Callback) {
+    fun startScan() {
         Handler(Looper.getMainLooper()).post {
             try {
                 engageInstance?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
                     override fun onBeaconCamped(beacon: ProBeacon) {
-                        Log.e("Beacon Details", beacon.toString())
-                        val beaconInfo = Arguments.createMap()
-                        beaconInfo.putString("uuid", beacon.uuid)
-                        beaconInfo.putInt("major", beacon.major)
-                        beaconInfo.putInt("minor", beacon.minor)
-                        beaconInfo.putInt("rssi", beacon.rssi)
-                        onBeaconCamped.invoke(beaconInfo)
+                        if (reactContext != null) {
+                            Log.e("BeaconEnter", beacon.toString())
+                            val beaconInfo = WritableNativeMap()
+                            beaconInfo.putString("uuid", beacon.uuid)
+                            beaconInfo.putInt("major", beacon.major)
+                            beaconInfo.putInt("minor", beacon.minor)
+                            beaconInfo.putInt("rssi", beacon.rssi)
+                            reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                                    .emit("onBeaconEnter", beaconInfo)
+                        }
                     }
 
                     override fun onBeaconExit(beacon: ProBeacon) {
                         // onBeaconExit.invoke(true)
+                        Log.e("BeaconExit", beacon.toString())
+                        val beaconInfo = WritableNativeMap()
+                        beaconInfo.putString("uuid", beacon.uuid)
+                        beaconInfo.putInt("major", beacon.major)
+                        beaconInfo.putInt("minor", beacon.minor)
+                        beaconInfo.putInt("rssi", beacon.rssi)
+                        reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
+                                .emit("onBeaconExit", beaconInfo)
                     }
 
                     override fun onRuleTriggered(rule: Rule) {
@@ -152,11 +160,16 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     @ReactMethod
     fun logout(callback: Callback) {
-        try {
-            engageInstance?.logout()
-            callback.invoke(true)
-        } catch (e: Exception) {
-            callback.invoke(false)
+
+        Handler(Looper.getMainLooper()).post {
+            kotlin.runCatching {
+                engageInstance?.logout()
+                callback.invoke(true)
+                Log.e("Logout","Logout success")
+            }.onFailure {
+                Log.e("Logout","${it.message}")
+                callback.invoke(false)
+            }
         }
     }
 
