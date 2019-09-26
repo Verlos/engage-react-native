@@ -126,6 +126,16 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     }
 
     @ReactMethod
+    fun isUserRegistered(callback: Callback){
+        try {
+            callback(engageInstance?.isUserRegistered);
+        }catch (e: Exception){
+            callback(false)
+        }
+    }
+
+
+    @ReactMethod
     fun updateApiKey(apiKey: String, callback: Callback) {
         try {
             engageInstance?.updateApiKey(apiKey) {
