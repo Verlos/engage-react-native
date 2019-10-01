@@ -4,7 +4,7 @@ import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
-import androidx.appcompat.app.AppCompatActivity 
+import androidx.appcompat.app.AppCompatActivity
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.proximipro.engage.android.Engage
@@ -19,6 +19,9 @@ import java.util.*
 
 class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
+    private val ErrorMessage: String = "Engage SDK initialization missing or entered invalid API Key, please try again"
+    private val IS_INITIALIZED = "isInitialized"
+    private val IS_USER_REGISTERED = "isUserRegistered"
     private val engageInstance: Engage? by lazy {
         Engage.getInstance()
     }
@@ -35,46 +38,38 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     //SDK intialization
     @ReactMethod
-    fun initialize(apiKey: String, appName: String, regionId: String, clientId: String, uuid: String, callback: Callback) {
+    fun initialize(apiKey: String, appName: String, regionId: String, clientId: String, uuid: String, promise: Promise) {
         try {
             var initRequest = InitializationRequest(apiKey, appName, regionId, clientId, uuid)
             Engage.initialize(reactContext.applicationContext as Application, request = initRequest, callback = object : InitializationCallback() {
                 override fun onError(e: Throwable) {
                     super.onError(e)
-                    callback.invoke(false)
+                    promise.resolve(false)
                 }
 
                 override fun onSuccess() {
                     super.onSuccess()
-                    callback.invoke(true)
+                    promise.resolve(true)
                 }
             })
         } catch (e: Exception) {
-            e.printStackTrace()
+            promise.reject("Exception", ErrorMessage)
         }
     }
 
     @ReactMethod
-    fun isInitialized(callback: Callback) {
+    fun isScanOnGoing(promise: Promise) {
         try {
-            callback.invoke(Engage.isInitialized)
+            promise.resolve(engageInstance?.isScanOnGoing())
         } catch (e: Exception) {
-            callback.invoke(false)
-        }
-
-    }
-
-    @ReactMethod
-    fun isScanOnGoing(callback: Callback) {
-        try {
-            callback.invoke(engageInstance?.isScanOnGoing())
-        } catch (e: Exception) {
-            callback.invoke(false)
+            promise.reject("Exception", ErrorMessage)
         }
     }
+
 
     @ReactMethod
     fun startScan() {
+        Log.e("startScan","startScan")
         Handler(Looper.getMainLooper()).post {
             try {
                 engageInstance?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
@@ -116,90 +111,84 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     }
 
     @ReactMethod
-    fun stopScan(callback: Callback) {
+    fun stopScan(promise: Promise) {
         try {
             engageInstance?.stopScan()
-            callback.invoke(true)
+            promise.resolve(true)
         } catch (e: Exception) {
-            callback.invoke(false)
+            promise.reject("Exception", ErrorMessage)
         }
     }
 
     @ReactMethod
-    fun isUserRegistered(callback: Callback){
-        try {
-            callback(engageInstance?.isUserRegistered);
-        }catch (e: Exception){
-            callback(false)
-        }
-    }
-
-
-    @ReactMethod
-    fun updateApiKey(apiKey: String, callback: Callback) {
+    fun updateApiKey(apiKey: String, promise: Promise) {
         try {
             engageInstance?.updateApiKey(apiKey) {
-                callback.invoke(it)
+                promise.resolve(it)
             }
         } catch (e: Exception) {
-            callback.invoke(false)
+            promise.reject("Exception", ErrorMessage)
         }
     }
 
     @ReactMethod
-    fun setRegionParams(uuid: String, regionIdentifier: String, callback: Callback) {
+    fun setRegionParams(uuid: String, regionIdentifier: String, promise: Promise) {
         try {
             engageInstance?.setRegionParams(uuid, regionIdentifier)
-            callback.invoke(true)
+            promise.resolve(true)
         } catch (e: Exception) {
-            callback.invoke(false)
-            e.printStackTrace()
+            promise.reject("Exception", ErrorMessage)
         }
 
     }
 
     @ReactMethod
-    fun updateBeaconUUID(uuidString: String, callback: Callback) {
+    fun updateBeaconUUID(uuidString: String, promise: Promise) {
         try {
             engageInstance?.updateBeaconUUID(uuidString)
-            callback.invoke(true)
+            promise.resolve(true)
         } catch (e: Exception) {
-            callback.invoke(false)
+            promise.reject("Exception", ErrorMessage)
         }
     }
 
     @ReactMethod
-    fun logout(callback: Callback) {
+    fun logout(promise: Promise) {
 
         Handler(Looper.getMainLooper()).post {
             kotlin.runCatching {
                 engageInstance?.logout()
-                callback.invoke(true)
-                Log.e("Logout","Logout success")
+                Log.e("Logout", "Logout success")
+                promise.resolve(true)
             }.onFailure {
-                Log.e("Logout","${it.message}")
-                callback.invoke(false)
+                Log.e("Logout", "${it.message}")
+                promise.reject("Exception", ErrorMessage)
             }
         }
     }
 
     @ReactMethod
-    fun registerUser(apiKey: String,
-                     birthDate: String,
+    fun registerUser(birthDate: String,
                      gender: String? = null,
-                     callback: Callback) {
-        val date = Date(birthDate.toLong())
-        val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
-        engageInstance?.registerUser(apiKey, date, genderType)?.onSuccess {
-            callback.invoke(it)
-        }?.onFailure {
-            callback.invoke(it)
+                     promise: Promise) {
+        try {
+            val date = Date(birthDate.toLong())
+            val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
+            engageInstance?.registerUser(birthDate = date, gender = genderType)?.onSuccess {
+                val result = Arguments.createMap()
+                result.putString("apiKey", it.apiKey)
+                result.putString("appid", it.appid)
+                promise.resolve(result)
+            }?.onFailure {
+                promise.reject("Exception", it.message)
+            }
+        } catch (e: Exception) {
+            promise.reject("Exception", ErrorMessage)
         }
-
     }
 
     @ReactMethod
-    fun config(callback: Callback) {
+    fun config(promise: Promise) {
         try {
             var en = engageInstance?.config() as EngageConfig
             val result = Arguments.createMap()
@@ -213,9 +202,16 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
             result.putBoolean("isNotificationEnabled", en.isNotificationEnabled)
             result.putBoolean("isUserRegistered", en.isUserRegistered)
             result.putString("pendingIntentClassName", en.pendingIntentClassName)
-            callback.invoke(result)
+            promise.resolve(result)
         } catch (e: Exception) {
-
+            promise.reject("Exception", ErrorMessage)
         }
+    }
+
+    override fun getConstants(): Map<String, Any>? {
+        val constants = HashMap<String, Any>()
+        constants.put(IS_INITIALIZED, Engage.isInitialized)
+        constants.put(IS_USER_REGISTERED, engageInstance?.isUserRegistered == true)
+        return constants
     }
 }
