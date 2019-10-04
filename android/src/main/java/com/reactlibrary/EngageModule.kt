@@ -208,6 +208,26 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
         }
     }
 
+    @ReactMethod
+    fun setBackgroundMode(enable: Boolean){
+        try {
+            Log.e("ChangeBackGroundMode", "${enable}")
+            Engage.getInstance()?.config()?.isBackgroundModeEnabled = enable
+        }catch(e: Exception){
+            e.printStackTrace()
+        }
+    }
+
+    @ReactMethod
+    fun setNotificationMode(enable: Boolean){
+        try {
+            Log.e("ChangeNotificationMode", "${enable}")
+            Engage.getInstance()?.config()?.isNotificationEnabled = enable
+        }catch(e: Exception){
+            e.printStackTrace()
+        }
+    }
+    
     override fun getConstants(): Map<String, Any>? {
         val constants = HashMap<String, Any>()
         constants.put(IS_INITIALIZED, Engage.isInitialized)

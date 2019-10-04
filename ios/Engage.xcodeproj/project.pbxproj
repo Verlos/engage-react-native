@@ -7,7 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		50BDC808233CDD3200740E4D /* Test.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50BDC807233CDD3200740E4D /* Test.swift */; };
+		503D5FB1234608C800373171 /* EngageLocationManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 503D5FAF234608C800373171 /* EngageLocationManager.m */; };
+		50AF2DFB2345F19F00F6A05A /* Engage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50AF2DFA2345F19F00F6A05A /* Engage.swift */; };
 		B3E7B58A1CC2AC0600A0062D /* Engage.m in Sources */ = {isa = PBXBuildFile; fileRef = B3E7B5891CC2AC0600A0062D /* Engage.m */; };
 /* End PBXBuildFile section */
 
@@ -25,8 +26,10 @@
 
 /* Begin PBXFileReference section */
 		134814201AA4EA6300B7C361 /* libEngage.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libEngage.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		503D5FAF234608C800373171 /* EngageLocationManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EngageLocationManager.m; sourceTree = "<group>"; };
+		503D5FB0234608C800373171 /* EngageLocationManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EngageLocationManager.h; sourceTree = "<group>"; };
+		50AF2DFA2345F19F00F6A05A /* Engage.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Engage.swift; sourceTree = "<group>"; };
 		50BDC806233CDD3200740E4D /* Engage-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Engage-Bridging-Header.h"; sourceTree = "<group>"; };
-		50BDC807233CDD3200740E4D /* Test.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Test.swift; sourceTree = "<group>"; };
 		B3E7B5881CC2AC0600A0062D /* Engage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engage.h; sourceTree = "<group>"; };
 		B3E7B5891CC2AC0600A0062D /* Engage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engage.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -53,7 +56,9 @@
 		58B511D21A9E6C8500147676 = {
 			isa = PBXGroup;
 			children = (
-				50BDC807233CDD3200740E4D /* Test.swift */,
+				503D5FB0234608C800373171 /* EngageLocationManager.h */,
+				503D5FAF234608C800373171 /* EngageLocationManager.m */,
+				50AF2DFA2345F19F00F6A05A /* Engage.swift */,
 				B3E7B5881CC2AC0600A0062D /* Engage.h */,
 				B3E7B5891CC2AC0600A0062D /* Engage.m */,
 				134814211AA4EA7D00B7C361 /* Products */,
@@ -120,7 +125,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				B3E7B58A1CC2AC0600A0062D /* Engage.m in Sources */,
-				50BDC808233CDD3200740E4D /* Test.swift in Sources */,
+				50AF2DFB2345F19F00F6A05A /* Engage.swift in Sources */,
+				503D5FB1234608C800373171 /* EngageLocationManager.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
