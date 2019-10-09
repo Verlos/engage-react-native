@@ -204,9 +204,3 @@ class Engage: RCTEventEmitter {
         return true;
     }
 }
-
-//extension Engage: CLLocationManagerDelegate {
-//  func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-//    print(locations.first ?? "")
-//  }
-//}

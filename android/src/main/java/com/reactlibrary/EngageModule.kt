@@ -15,6 +15,8 @@ import com.proximipro.engage.android.model.ProBeacon
 import com.proximipro.engage.android.model.common.Rule
 import com.proximipro.engage.android.util.Gender
 import com.proximipro.engage.android.util.InitializationCallback
+import com.proximipro.engage.android.util.getEngage
+import com.proximipro.engage.android.util.getEngageOrNull
 import java.util.*
 
 class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -22,9 +24,6 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     private val ErrorMessage: String = "Engage SDK initialization missing or entered invalid API Key, please try again"
     private val IS_INITIALIZED = "isInitialized"
     private val IS_USER_REGISTERED = "isUserRegistered"
-    private val engageInstance: Engage? by lazy {
-        Engage.getInstance()
-    }
 
     override fun getName(): String {
         return "Engage"
@@ -60,7 +59,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun isScanOnGoing(promise: Promise) {
         try {
-            promise.resolve(engageInstance?.isScanOnGoing())
+            promise.resolve(getEngage()?.isScanOnGoing())
         } catch (e: Exception) {
             promise.reject("Exception", ErrorMessage)
         }
@@ -69,10 +68,11 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     @ReactMethod
     fun startScan() {
-        Log.e("startScan","startScan")
+
         Handler(Looper.getMainLooper()).post {
             try {
-                engageInstance?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
+                Log.e("startScan","startScan")
+                getEngage()?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
                     override fun onBeaconCamped(beacon: ProBeacon) {
                         if (reactContext != null) {
                             Log.e("BeaconEnter", beacon.toString())
@@ -113,7 +113,8 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun stopScan(promise: Promise) {
         try {
-            engageInstance?.stopScan()
+            Log.e("stopScan","stopScan")
+            getEngage()?.stopScan()
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("Exception", ErrorMessage)
@@ -123,7 +124,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun updateApiKey(apiKey: String, promise: Promise) {
         try {
-            engageInstance?.updateApiKey(apiKey) {
+            getEngage()?.updateApiKey(apiKey) {
                 promise.resolve(it)
             }
         } catch (e: Exception) {
@@ -134,7 +135,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun setRegionParams(uuid: String, regionIdentifier: String, promise: Promise) {
         try {
-            engageInstance?.setRegionParams(uuid, regionIdentifier)
+            getEngage()?.setRegionParams(uuid, regionIdentifier)
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("Exception", ErrorMessage)
@@ -145,7 +146,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun updateBeaconUUID(uuidString: String, promise: Promise) {
         try {
-            engageInstance?.updateBeaconUUID(uuidString)
+            getEngage()?.updateBeaconUUID(uuidString)
             promise.resolve(true)
         } catch (e: Exception) {
             promise.reject("Exception", ErrorMessage)
@@ -157,7 +158,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
         Handler(Looper.getMainLooper()).post {
             kotlin.runCatching {
-                engageInstance?.logout()
+                getEngage()?.logout()
                 Log.e("Logout", "Logout success")
                 promise.resolve(true)
             }.onFailure {
@@ -174,7 +175,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
         try {
             val date = Date(birthDate.toLong())
             val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
-            engageInstance?.registerUser(birthDate = date, gender = genderType)?.onSuccess {
+            getEngage()?.registerUser(birthDate = date, gender = genderType)?.onSuccess {
                 val result = Arguments.createMap()
                 result.putString("apiKey", it.apiKey)
                 result.putString("appid", it.appid)
@@ -190,7 +191,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     @ReactMethod
     fun config(promise: Promise) {
         try {
-            var en = engageInstance?.config() as EngageConfig
+            var en = getEngage()?.config() as EngageConfig
             val result = Arguments.createMap()
             result.putString("apiKey", en.apiKey)
             result.putString("appName", en.appName)
@@ -227,11 +228,11 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
             e.printStackTrace()
         }
     }
-    
+
     override fun getConstants(): Map<String, Any>? {
         val constants = HashMap<String, Any>()
         constants.put(IS_INITIALIZED, Engage.isInitialized)
-        constants.put(IS_USER_REGISTERED, engageInstance?.isUserRegistered == true)
+        constants.put(IS_USER_REGISTERED, Engage.getInstance()?.isUserRegistered == true)
         return constants
     }
 }
