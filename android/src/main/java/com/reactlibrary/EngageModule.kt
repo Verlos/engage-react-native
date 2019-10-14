@@ -68,7 +68,6 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
     @ReactMethod
     fun startScan() {
-
         Handler(Looper.getMainLooper()).post {
             try {
                 Log.e("startScan","startScan")
@@ -176,6 +175,26 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
             val date = Date(birthDate.toLong())
             val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
             getEngage()?.registerUser(birthDate = date, gender = genderType)?.onSuccess {
+                val result = Arguments.createMap()
+                result.putString("apiKey", it.apiKey)
+                result.putString("appid", it.appid)
+                promise.resolve(result)
+            }?.onFailure {
+                promise.reject("Exception", it.message)
+            }
+        } catch (e: Exception) {
+            promise.reject("Exception", ErrorMessage)
+        }
+    }
+
+    @ReactMethod
+    fun updateUser(birthDate: String,
+                   gender: String? = null,
+                   promise: Promise) {
+        try {
+            val date = Date(birthDate.toLong())
+            val genderType = if (gender?.toLowerCase().equals("male")) Gender.Male else Gender.Female
+            getEngage()?.updateUser(birthDate = date, gender = genderType)?.onSuccess {
                 val result = Arguments.createMap()
                 result.putString("apiKey", it.apiKey)
                 result.putString("appid", it.appid)
