@@ -33,12 +33,8 @@ async function registerUser(birthDate, gender = null) {
  * @param {*} gender update gender - Male or female
  * @param {*} promise function that returns boolean value or error
  */
-async function updateUser(birthDate, gender = null) {
-  if (Platform.OS === 'ios') {
-    return await Engage.registerUser(birthDate, gender);
-  } else {
-    return await Engage.updateUser(birthDate, gender);
-  }
+async function updateUser(birthDate, gender = null, tags = null) {
+  return await Engage.updateUser(birthDate, gender, tags);
 };
 
 /**
@@ -62,11 +58,31 @@ async function stopScan() {
 }
 
 /**
+ * @param {*} beaconInfo fetch content using beacon
+ */
+async function fetchContentBeacon(beaconInfo) {
+  return await Platform.OS === 'android' ?
+    Engage.fetchContentBeacon(JSON.stringify(beaconInfo)) :
+    Engage.fetchContentBeacon(beaconInfo)
+}
+
+/**
+ * 
+ * @param {*} locationInfo fetch content using location
+ */
+async function fetchContentLocation(locationInfo) {
+  return await Platform.OS === 'android' ?
+    Engage.fetchContentLocation(JSON.stringify(locationInfo)) :
+    Engage.fetchContentLocation(locationInfo)
+}
+
+/**
  * remove enter and exit listeners
  */
 function removeBeaconListener() {
   DeviceEventEmitter.removeListener('onBeaconEnter');
   DeviceEventEmitter.removeListener('onBeaconExit');
+  DeviceEventEmitter.removeListener('onBeaconLocation');
 }
 
 /**
@@ -148,11 +164,24 @@ function setNotificationMode(enable) {
 }
 
 /**
+ * @param {*} enable It set geolocation mode enable disvale.
+ */
+function setGeoLocationMode(enable) {
+  Engage.setGeoLocationMode(enable);
+}
+
+/**
  * addListeners for enterBeacon and exitBeacon
  */
 const engageModule = new NativeEventEmitter(Engage)
 function addListener(evantName, listener) {
-  engageModule.addListener(evantName, listener);
+  engageModule.addListener(evantName, (beaconInfo) => {
+    console.log('beaconInfo');
+    console.log(beaconInfo);
+    console.log('---------------------');
+    const info = Platform.OS === 'ios' ? beaconInfo : JSON.parse(beaconInfo)
+    listener(info);
+  });
 }
 
 export default {
@@ -165,7 +194,7 @@ export default {
   updateApiKey,
   logout,
   setRegionParams: Engage.setRegionParams,
-  config: Engage.config,
+  config,
   registerUser,
   updateUser,
   updateBeaconUUID,
@@ -174,4 +203,7 @@ export default {
   addListener,
   setBackgroundMode,
   setNotificationMode,
+  setGeoLocationMode,
+  fetchContentBeacon,
+  fetchContentLocation
 };

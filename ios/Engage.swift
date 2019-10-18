@@ -28,11 +28,121 @@ class Engage: RCTEventEmitter {
             reject("exception", self.errorMessage, nil);
             return
         }
-        manager.callRegisterUserApi(birthDate: birthDate, gender: gender, tags: nil) { (userData) in
+        let timeInterval = TimeInterval(birthDate)
+        let date = Date(timeIntervalSince1970:timeInterval!)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy/MM/dd" //Specify your format that you want
+        let strDate = dateFormatter.string(from: date)
+        manager.callRegisterUserApi(birthDate: strDate, gender: gender, tags: nil) { (userData) in
             if let _ = userData {
                 resolve(true)
             }else {
                 resolve(false)
+            }
+        }
+    }
+    
+    @objc func updateUser(_ birthDate: String, Gender gender:String, Tags tags:[[String: Any]], updateUserWithResolve resolve : @escaping RCTPromiseResolveBlock, updateUserWithReject reject: @escaping RCTPromiseRejectBlock){
+        guard let manager = EngageSDK.shared else{
+            reject("exception", self.errorMessage, nil);
+            return
+        }
+        let timeInterval = TimeInterval(birthDate)
+        let date = Date(timeIntervalSince1970:timeInterval!)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy/MM/dd" //Specify your format that you want
+        let strDate = dateFormatter.string(from: date)
+        
+        let jsonDecoder: JSONDecoder = {
+            let jsonDecoder = JSONDecoder()
+            jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-mm-dd"
+            jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
+            return jsonDecoder
+        }()
+        if let json = self.json(from: tags) {
+            do {
+                let values = try jsonDecoder.decode([Tag].self, from: json)
+                manager.callRegisterUserApi(birthDate: strDate, gender: gender, tags: values) { (userData) in
+                    if let _ = userData {
+                        resolve(true)
+                    }else {
+                        resolve(false)
+                    }
+                }
+                
+            } catch {
+                print(error)
+            }
+        }
+    }
+    
+    
+    
+    func json(from object:Any)->Data?{
+        guard let data = try?JSONSerialization.data(withJSONObject: object, options:[])
+            else{
+                return nil
+        }
+        return data
+    }
+    
+    @objc func fetchContentLocation(_ locationInfo: NSDictionary?, fetchContentWithResolve resolve: @escaping RCTPromiseResolveBlock, fetchContentWithReject reject: @escaping RCTPromiseRejectBlock){
+        guard let manager = EngageSDK.shared else{
+            reject("exception", self.errorMessage, nil);
+            return
+        }
+        
+        var userLocation: CLLocationCoordinate2D?
+        if let locationInfo = locationInfo, let latitude = Double(locationInfo["latitude"] as! String), let longitude = Double(locationInfo["longitude"] as! String){
+            userLocation = CLLocationCoordinate2D.init(latitude: latitude, longitude: longitude)
+        }
+        
+        manager.callFetchForgroundContentApi(location: userLocation) { (result) in
+            var arrResult = [Any]();
+            if let result = result{
+                result.forEach({ (item) in
+                    let dic = [
+                        "bigtext" : item.bigtext,
+                        "id" : item.id,
+                        "image" : item.image,
+                        "note1": item.note1,
+                        "note2" :item.note2,
+                        "title" : item.title,
+                        "type" : item.type,
+                        "url" :  item.url
+                    ]
+                    arrResult.append(dic)
+                })
+                resolve(arrResult as? NSArray)
+            }
+        }
+    }
+    
+    @objc func fetchContentBeacon(_ beaconInfo: NSDictionary, fetchContentWithResolve resolve: @escaping RCTPromiseResolveBlock, fetchContentWithReject reject: @escaping RCTPromiseRejectBlock){
+        guard let manager = EngageSDK.shared else{
+            reject("exception", self.errorMessage, nil);
+            return
+        }
+        
+        manager.callFetchForgroundContentApi(uuid: beaconInfo["uuid"] as! String, major: "\(beaconInfo["major"] as! Int)", minor: "\(beaconInfo["minor"] as! Int)") { (result) in
+            var arrResult = [Any]();
+            if let result = result{
+                result.forEach({ (item) in
+                    let dic = [
+                        "bigtext" : item.bigtext,
+                        "id" : item.id,
+                        "image" : item.image,
+                        "note1": item.note1,
+                        "note2" :item.note2,
+                        "title" : item.title,
+                        "type" : item.type,
+                        "url" :  item.url
+                    ]
+                    arrResult.append(dic)
+                })
+                resolve(arrResult as? NSArray)
             }
         }
     }
@@ -99,6 +209,10 @@ class Engage: RCTEventEmitter {
             reject("exception", self.errorMessage, nil);
             return
         }
+        let userDefaults = UserDefaults.standard
+        let domain = Bundle.main.bundleIdentifier!
+        userDefaults.removePersistentDomain(forName: domain)
+        userDefaults.synchronize()
         manager.logout()
         resolve(true)
     }
@@ -136,10 +250,20 @@ class Engage: RCTEventEmitter {
         dicInfo.setValue(manager.initData?.clientId, forKey: "clientId")
         dicInfo.setValue(manager.initData?.regionId, forKey: "regionId")
         dicInfo.setValue(manager.isBackgroundMode, forKey: "isBackgroundModeEnabled")
-        //        dicInfo.setValue(manager.isLocationBasedContentEnabled, forKey: "isLocationBasedContentEnabled")
+        dicInfo.setValue(manager.isLocationBasedContentEnabled, forKey: "isLocationBasedContentEnabled")
         dicInfo.setValue(manager.isNotificationEnabled, forKey: "isNotificationEnabled")
         dicInfo.setValue(manager.isUserRegistered, forKey: "isUserRegistered")
-        //        dicInfo.setValue(manager.pendingIntentClassName, forKey: "pendingIntentClassName")
+        var arrTag = [Any]()
+        if let tags = manager.userInfo?.tags{
+            tags.forEach { (tag) in
+                let dic = [
+                    "name": tag.name ?? "",
+                    "isSelected": tag.isSelected ?? false
+                    ] as [String : Any]
+                arrTag.append(dic)
+            }
+        }
+        dicInfo.setValue(arrTag, forKey: "tags")
         resolve(dicInfo)
     }
     
@@ -152,6 +276,12 @@ class Engage: RCTEventEmitter {
         guard let manager = EngageSDK.shared else { return }
         manager.isNotificationEnabled = enable
     }
+    
+    @objc func setGeoLocationMode(_ enable: Bool){
+        guard let manager = EngageSDK.shared else { return }
+        manager.isLocationBasedContentEnabled = enable
+    }
+    
     
     /// Setup Beacon Moitor Block
     func setupBeaconMoitorBlock() {
@@ -177,9 +307,17 @@ class Engage: RCTEventEmitter {
         manager.onRangedBeacon = { beacons in
             print("Ranged beacons \(beacons)")
         }
-        manager.onRuleTriggeres = { rule in
+        
+        manager.onRuleTriggeres = { rule, location in
             print("Rule triggeres \(rule)")
-            
+        }
+        
+        manager.onLocationRuleTriggeres = { rule, location in
+            var locationInfo: [String: Any] = [:]
+            locationInfo["latitude"] = location?.latitude.description
+            locationInfo["longitude"] = location?.longitude.description
+            self.sendEvent(withName: "onBeaconLocation", body: locationInfo)
+            print("Rule triggeres \(rule)")
         }
         manager.onPermissionChange = { (message, permission) in
             if !permission {
@@ -190,7 +328,7 @@ class Engage: RCTEventEmitter {
     
     //Note that any event name used in sendEvent above needs to be in this array.
     override func supportedEvents() -> [String]! {
-        return ["Engage", "onBeaconEnter", "onBeaconExit"]
+        return ["Engage", "onBeaconEnter", "onBeaconExit", "onBeaconLocation"]
     }
     //Demonstrate setting constants. Note that constants can be (almost) any type, but that this function is only evaluated once, at initialidation
     @objc override func constantsToExport() -> Dictionary<AnyHashable, Any> {
