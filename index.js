@@ -176,9 +176,6 @@ function setGeoLocationMode(enable) {
 const engageModule = new NativeEventEmitter(Engage)
 function addListener(evantName, listener) {
   engageModule.addListener(evantName, (beaconInfo) => {
-    console.log('beaconInfo');
-    console.log(beaconInfo);
-    console.log('---------------------');
     const info = Platform.OS === 'ios' ? beaconInfo : JSON.parse(beaconInfo)
     listener(info);
   });

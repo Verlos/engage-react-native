@@ -47,33 +47,20 @@ class Engage: RCTEventEmitter {
             reject("exception", self.errorMessage, nil);
             return
         }
+        
+        let newTags = tags.map { (tag) in
+            return Tag.init(isSelected: tag["isSelected"] as? Bool ?? false, name: tag["name"] as? String ?? "")
+        }
         let timeInterval = TimeInterval(birthDate)
         let date = Date(timeIntervalSince1970:timeInterval!)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy/MM/dd" //Specify your format that you want
         let strDate = dateFormatter.string(from: date)
-        
-        let jsonDecoder: JSONDecoder = {
-            let jsonDecoder = JSONDecoder()
-            jsonDecoder.keyDecodingStrategy = .convertFromSnakeCase
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-mm-dd"
-            jsonDecoder.dateDecodingStrategy = .formatted(dateFormatter)
-            return jsonDecoder
-        }()
-        if let json = self.json(from: tags) {
-            do {
-                let values = try jsonDecoder.decode([Tag].self, from: json)
-                manager.callRegisterUserApi(birthDate: strDate, gender: gender, tags: values) { (userData) in
-                    if let _ = userData {
-                        resolve(true)
-                    }else {
-                        resolve(false)
-                    }
-                }
-                
-            } catch {
-                print(error)
+        manager.callRegisterUserApi(birthDate: strDate, gender: gender, tags: newTags) { (userData) in
+            if let _ = userData {
+                resolve(true)
+            }else {
+                resolve(false)
             }
         }
     }
@@ -126,7 +113,7 @@ class Engage: RCTEventEmitter {
             return
         }
         
-        manager.callFetchForgroundContentApi(uuid: beaconInfo["uuid"] as! String, major: "\(beaconInfo["major"] as! Int)", minor: "\(beaconInfo["minor"] as! Int)") { (result) in
+        manager.callFetchForgroundContentApi(uuid: beaconInfo["uuid"] as! String, major: "\(beaconInfo["major"] as! Int)", minor: "\(beaconInfo["minor"] as! Int)",  latitude: "\(beaconInfo["latitude"] as! String)", longitude: "\(beaconInfo["longitude"] as! String)") { (result) in
             var arrResult = [Any]();
             if let result = result{
                 result.forEach({ (item) in
@@ -209,10 +196,6 @@ class Engage: RCTEventEmitter {
             reject("exception", self.errorMessage, nil);
             return
         }
-        let userDefaults = UserDefaults.standard
-        let domain = Bundle.main.bundleIdentifier!
-        userDefaults.removePersistentDomain(forName: domain)
-        userDefaults.synchronize()
         manager.logout()
         resolve(true)
     }
@@ -282,20 +265,22 @@ class Engage: RCTEventEmitter {
         manager.isLocationBasedContentEnabled = enable
     }
     
-    
     /// Setup Beacon Moitor Block
     func setupBeaconMoitorBlock() {
         guard let manager = EngageSDK.shared else { return }
-        manager.onBeaconCamped = { beacon in
+        manager.onBeaconCamped = { beacon, location in
             print("Entry beacon \(beacon)")
             let beaconInfo = NSMutableDictionary();
+            beaconInfo.setValue(location?.latitude.description, forKey: "latitude")
+            beaconInfo.setValue(location?.longitude.description, forKey: "longitude")
             beaconInfo.setValue(beacon.beacon.major, forKey: "major")
             beaconInfo.setValue(beacon.beacon.minor, forKey: "minor")
             beaconInfo.setValue(beacon.rssi, forKey: "rssi")
             beaconInfo.setValue("\(beacon.beacon.proximityUUID)", forKey: "uuid")
             self.sendEvent(withName: "onBeaconEnter", body: beaconInfo)
         }
-        manager.onBeaconExit = { beacon in
+        
+        manager.onBeaconExit = { beacon, location in
             print("Exit beacon \(beacon)")
             var beaconInfo: [String: Any] = [:]
             beaconInfo["major"] = beacon.beacon.major
@@ -324,11 +309,21 @@ class Engage: RCTEventEmitter {
                 
             }
         }
+        manager.onScanStopped = {
+            self.sendEvent(withName: "onStopScan", body: nil)
+        }
+        
+        manager.locationCheckLiveData = { location in
+            var locationInfo: [String: Any] = [:]
+            locationInfo["latitude"] = location?.latitude.description
+            locationInfo["longitude"] = location?.longitude.description
+            self.sendEvent(withName: "onLocationChange", body: locationInfo)
+        }
     }
     
     //Note that any event name used in sendEvent above needs to be in this array.
     override func supportedEvents() -> [String]! {
-        return ["Engage", "onBeaconEnter", "onBeaconExit", "onBeaconLocation"]
+        return ["Engage", "onBeaconEnter", "onBeaconExit", "onBeaconLocation", "onLocationChange","onStopScan"]
     }
     //Demonstrate setting constants. Note that constants can be (almost) any type, but that this function is only evaluated once, at initialidation
     @objc override func constantsToExport() -> Dictionary<AnyHashable, Any> {
