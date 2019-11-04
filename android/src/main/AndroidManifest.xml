@@ -1,55 +1,55 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.reactlibrary">
-
+    
     <!-- From WorkManager manifest: https://android.googlesource.com/platform/frameworks/support/+/androidx-master-dev/work/workmanager/src/main/AndroidManifest.xml -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-
+    
     <!--  WorkManager ends -->
-
-    <application
-        tools:node="replace">
+    
+    <application>
         <!-- WorkManager config -->
-
+        
         <provider
-            android:name="androidx.work.impl.WorkManagerInitializer"
-            android:authorities="${applicationId}.workmanager-init"
-            android:directBootAware="false"
-            android:exported="false"
-            android:multiprocess="true"
-            tools:targetApi="n" />
-
+        android:name="androidx.work.impl.WorkManagerInitializer"
+        android:authorities="${applicationId}.workmanager-init"
+        android:directBootAware="false"
+        android:exported="false"
+        android:multiprocess="true"
+        tools:targetApi="n"
+        tools:replace="android:authorities"/>
+        
         <service
-            android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
-            android:directBootAware="false"
-            android:enabled="@bool/enable_system_alarm_service_default"
-            android:exported="false"
-            tools:targetApi="n" />
+        android:name="androidx.work.impl.background.systemalarm.SystemAlarmService"
+        android:directBootAware="false"
+        android:enabled="@bool/enable_system_alarm_service_default"
+        android:exported="false"
+        tools:targetApi="n" />
         <service
-            android:name="androidx.work.impl.background.systemjob.SystemJobService"
-            android:directBootAware="false"
-            android:enabled="@bool/enable_system_job_service_default"
-            android:exported="true"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            tools:targetApi="n" />
-
+        android:name="androidx.work.impl.background.systemjob.SystemJobService"
+        android:directBootAware="false"
+        android:enabled="@bool/enable_system_job_service_default"
+        android:exported="true"
+        android:permission="android.permission.BIND_JOB_SERVICE"
+        tools:targetApi="n" />
+        
         <!-- This error is caused because this service is marked with Restriction to LIBRARY_GROUP in WorkManager source. Don't know where it is used but had to copy from WorkManager manifest file-->
         <!--<service
-            android:name="androidx.work.impl.foreground.SystemForegroundService"
-            android:directBootAware="false"
-            android:enabled="@bool/enable_system_foreground_service_default"
-            android:exported="false"
-            tools:targetApi="n" />-->
-
+         android:name="androidx.work.impl.foreground.SystemForegroundService"
+         android:directBootAware="false"
+         android:enabled="@bool/enable_system_foreground_service_default"
+         android:exported="false"
+         tools:targetApi="n" />-->
+        
         <receiver
-            android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
-            android:directBootAware="false"
-            android:enabled="true"
-            android:exported="false"
-            tools:targetApi="n" />
+        android:name="androidx.work.impl.utils.ForceStopRunnable$BroadcastReceiver"
+        android:directBootAware="false"
+        android:enabled="true"
+        android:exported="false"
+        tools:targetApi="n" />
         <receiver
             android:name="androidx.work.impl.background.systemalarm.ConstraintProxy$BatteryChargingProxy"
             android:directBootAware="false"
@@ -115,13 +115,13 @@
                 <action android:name="androidx.work.impl.background.systemalarm.UpdateProxies" />
             </intent-filter>
         </receiver>
-
+        
         <!-- WorkManager config ends here -->
-
+        
         <activity
-            android:name="com.proximipro.engage.android.core.LocationSettingsActivity"
-            android:launchMode="singleTask" />
-
+        android:name="com.proximipro.engage.android.core.LocationSettingsActivity"
+        android:launchMode="singleTask" />
+        
         <receiver
             android:name="com.proximipro.engage.android.core.LocationBroadcastReceiver"
             android:enabled="true"
@@ -130,7 +130,7 @@
                 <action android:name="com.proximipro.engage.android.receiver.LocationBroadcastReceiver.action.PROCESS_UPDATES" />
             </intent-filter>
         </receiver>
-
+        
         <receiver
             android:name="com.proximipro.engage.android.receiver.BootBroadcastReceiver"
             android:enabled="true">
@@ -138,7 +138,7 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
+        
         <receiver
             android:name="com.proximipro.engage.android.receiver.ServiceStopBroadcastReceiver"
             android:enabled="true"
@@ -147,7 +147,7 @@
                 <action android:name="com.proximipro.engage.android.receiver.ServiceStopBroadcastReceiver" />
             </intent-filter>
         </receiver>
-
+        
         <receiver
             android:name="com.proximipro.engage.android.receiver.BackgroundScanResultReceiver"
             android:enabled="true"
@@ -156,7 +156,7 @@
                 <action android:name="com.proximipro.engage.android.receiver.BackgroundScanResultReceiver" />
             </intent-filter>
         </receiver>
-
+        
         <receiver android:name="org.altbeacon.beacon.startup.StartupBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
@@ -164,41 +164,42 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
             </intent-filter>
         </receiver>
-
+        
         <service
-            android:name="org.altbeacon.beacon.service.BeaconService"
-            android:enabled="true"
-            android:exported="false"
-            android:isolatedProcess="false"
-            android:label="beacon" />
-
+        android:name="org.altbeacon.beacon.service.BeaconService"
+        android:enabled="true"
+        android:exported="false"
+        android:isolatedProcess="false"
+        android:label="beacon" />
+        
         <service
-            android:name="org.altbeacon.beacon.BeaconIntentProcessor"
-            android:enabled="true"
-            android:exported="false" />
-
+        android:name="org.altbeacon.beacon.BeaconIntentProcessor"
+        android:enabled="true"
+        android:exported="false" />
+        
         <service
             android:name="org.altbeacon.beacon.service.ScanJob"
             android:permission="android.permission.BIND_JOB_SERVICE">
             <meta-data
-                android:name="immediateScanJobId"
-                android:value="208352939" />
+            android:name="immediateScanJobId"
+            android:value="208352939" />
             <meta-data
-                android:name="periodicScanJobId"
-                android:value="208352940" />
+            android:name="periodicScanJobId"
+            android:value="208352940" />
         </service>
-
+        
         <service
             android:name="org.altbeacon.bluetooth.BluetoothTestJob"
             android:permission="android.permission.BIND_JOB_SERVICE">
             <meta-data
-                android:name="jobId"
-                android:value="1799803768" />
+            android:name="jobId"
+            android:value="1799803768" />
         </service>
-
+        
         <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="12451000" />
+        android:name="com.google.android.gms.version"
+        android:value="12451000"
+        tools:replace="android:value"/>
     </application>
-
+    
 </manifest>

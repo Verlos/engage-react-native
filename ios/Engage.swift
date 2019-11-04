@@ -113,7 +113,8 @@ class Engage: RCTEventEmitter {
             return
         }
         
-        manager.callFetchForgroundContentApi(uuid: beaconInfo["uuid"] as! String, major: "\(beaconInfo["major"] as! Int)", minor: "\(beaconInfo["minor"] as! Int)",  latitude: "\(beaconInfo["latitude"] as! String)", longitude: "\(beaconInfo["longitude"] as! String)") { (result) in
+        
+        manager.callFetchForgroundContentApi(uuid: beaconInfo["uuid"] as! String, major: "\(beaconInfo["major"] as! Int)", minor: "\(beaconInfo["minor"] as! Int)",  latitude: beaconInfo["latitude"] as! String, longitude:beaconInfo["longitude"] as! String) { (result) in
             var arrResult = [Any]();
             if let result = result{
                 result.forEach({ (item) in
@@ -139,6 +140,7 @@ class Engage: RCTEventEmitter {
         if manager.locationManager == nil {
             manager.locationManager = EngageLocationManager.getLocationManager()
         }
+        
         manager.start() { (message, permission) in
             if !(message.isEmpty) {
                 if !permission {
@@ -196,6 +198,10 @@ class Engage: RCTEventEmitter {
             reject("exception", self.errorMessage, nil);
             return
         }
+        let domain = Bundle.main.bundleIdentifier!
+        
+        UserDefaults.standard.removePersistentDomain(forName: domain)
+        UserDefaults.standard.synchronize()
         manager.logout()
         resolve(true)
     }
@@ -236,6 +242,9 @@ class Engage: RCTEventEmitter {
         dicInfo.setValue(manager.isLocationBasedContentEnabled, forKey: "isLocationBasedContentEnabled")
         dicInfo.setValue(manager.isNotificationEnabled, forKey: "isNotificationEnabled")
         dicInfo.setValue(manager.isUserRegistered, forKey: "isUserRegistered")
+        dicInfo.setValue("\(Int(manager.snoozeNotificationTimeInMinutes))", forKey: "snoozeNotificationTimeInMinutes")
+        dicInfo.setValue("\(Int(manager.snoozeContentTimeInHours))", forKey: "snoozeContentTimeInHours")
+        
         var arrTag = [Any]()
         if let tags = manager.userInfo?.tags{
             tags.forEach { (tag) in
@@ -282,11 +291,13 @@ class Engage: RCTEventEmitter {
         
         manager.onBeaconExit = { beacon, location in
             print("Exit beacon \(beacon)")
-            var beaconInfo: [String: Any] = [:]
-            beaconInfo["major"] = beacon.beacon.major
-            beaconInfo["minor"] = beacon.beacon.minor
-            beaconInfo["rssi"]  = beacon.rssi
-            beaconInfo["uuid"]  = beacon.beacon.proximityUUID
+            let beaconInfo = NSMutableDictionary();
+            beaconInfo.setValue(location?.latitude.description, forKey: "latitude")
+            beaconInfo.setValue(location?.longitude.description, forKey: "longitude")
+            beaconInfo.setValue(beacon.beacon.major, forKey: "major")
+            beaconInfo.setValue(beacon.beacon.minor, forKey: "minor")
+            beaconInfo.setValue(beacon.rssi, forKey: "rssi")
+            beaconInfo.setValue("\(beacon.beacon.proximityUUID)", forKey: "uuid")
             self.sendEvent(withName: "onBeaconExit", body: beaconInfo)
         }
         manager.onRangedBeacon = { beacons in
@@ -310,7 +321,7 @@ class Engage: RCTEventEmitter {
             }
         }
         manager.onScanStopped = {
-            self.sendEvent(withName: "onStopScan", body: nil)
+            self.sendEvent(withName: "onStopScan", body: "")
         }
         
         manager.locationCheckLiveData = { location in
@@ -319,11 +330,73 @@ class Engage: RCTEventEmitter {
             locationInfo["longitude"] = location?.longitude.description
             self.sendEvent(withName: "onLocationChange", body: locationInfo)
         }
+        
+        manager.onPromotion = { promotion in
+            manager.callPromotionApi(id: promotion.meta?.params?.id ?? "", responseData: { (response) in
+                if let response = response{
+                    let data = [ "bigtext" : response.bigtext,
+                                 "id" : response.id,
+                                 "image" : response.image,
+                                 "note1": response.note1,
+                                 "note2" :response.note2,
+                                 "title" : response.title,
+                                 "type" : response.type,
+                                 "url" :  response.url]
+                    
+                    //resolve(data)
+                }else{
+                    // reject("exception", self.errorMessage, nil);
+                }
+            })
+        }
+    }
+    
+    @objc func getContentForActions(_ userInfo: NSDictionary?, onPromitionWithResolve resolve : @escaping RCTPromiseResolveBlock, onPromitionWithReject reject: @escaping RCTPromiseRejectBlock){
+        
+        guard let manager = EngageSDK.shared, let userInfo = userInfo else {
+            reject("exception", self.errorMessage, nil);
+            return
+        }
+        manager.onPromotion = { promotion in
+            manager.callPromotionApi(id: promotion.meta?.params?.id ?? "", responseData: { (response) in
+                if let response = response{
+                    let data = [ "bigtext" : response.bigtext,
+                                 "id" : response.id,
+                                 "image" : response.image,
+                                 "note1": response.note1,
+                                 "note2" :response.note2,
+                                 "title" : response.title,
+                                 "type" : response.type,
+                                 "url" :  response.url]
+                    
+                    resolve(data)
+                }else{
+                    reject("exception", self.errorMessage, nil);
+                }
+            })
+        }
+        manager.handleNotification(userInfo: userInfo as! [AnyHashable : Any]) {
+            print("handleNotification")
+        }
+    }
+    
+    @objc func setSnoozeNotifications(_ notificationMin: String){
+        guard let manager = EngageSDK.shared else {
+            return
+        }
+        manager.snoozeNotificationTimeInMinutes = Double(notificationMin) ?? 0
+    }
+    
+    @objc func setSnoozeContent(_ notificationHour: String){
+        guard let manager = EngageSDK.shared else {
+            return
+        }
+        manager.snoozeContentTimeInHours = Double(notificationHour) ?? 0
     }
     
     //Note that any event name used in sendEvent above needs to be in this array.
     override func supportedEvents() -> [String]! {
-        return ["Engage", "onBeaconEnter", "onBeaconExit", "onBeaconLocation", "onLocationChange","onStopScan"]
+        return ["Engage", "onBeaconEnter", "onBeaconExit", "onBeaconLocation", "onLocationChange","onStopScan", "onPromotion"]
     }
     //Demonstrate setting constants. Note that constants can be (almost) any type, but that this function is only evaluated once, at initialidation
     @objc override func constantsToExport() -> Dictionary<AnyHashable, Any> {

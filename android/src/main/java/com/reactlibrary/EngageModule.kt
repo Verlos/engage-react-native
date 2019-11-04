@@ -1,6 +1,7 @@
 package com.reactlibrary
 
 import android.app.Application
+import android.content.Intent
 import android.location.Location
 import android.os.Handler
 import android.os.Looper
@@ -17,6 +18,7 @@ import com.proximipro.engage.android.core.InitializationRequest
 import com.proximipro.engage.android.locationCheckLiveData
 import com.proximipro.engage.android.model.ProBeacon
 import com.proximipro.engage.android.model.Tag
+import com.proximipro.engage.android.model.common.Action
 import com.proximipro.engage.android.model.common.Rule
 import com.proximipro.engage.android.util.Gender
 import com.proximipro.engage.android.util.InitializationCallback
@@ -84,7 +86,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
                 if (getEngage().config().isLocationBasedContentEnabled) {
                     (reactContext.currentActivity as? AppCompatActivity)?.let { owner ->
                         locationCheckLiveData.observe(owner, androidx.lifecycle.Observer {
-                            it?: return@Observer
+                            it ?: return@Observer
                             Log.e("onChangeLocation", "location changes")
                             val json = """
                             {"latitude":${it.latitude}, "longitude": ${it.longitude}}
@@ -143,6 +145,21 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
             }
         }
 
+    }
+
+    @ReactMethod
+    fun getContentForActions(notificationInfo: String, promise: Promise) {
+        runCatching {
+            //        getEngage().getContentForActions()
+            Log.e("notificationInfo", notificationInfo)
+            val action = gson.fromJson<Action>(notificationInfo, Action::class.java)?: return
+            getEngage().getContentForActions(listOf(action), success = {
+                val jsonArray = gson.toJson(it)
+                promise.resolve(jsonArray)
+            }){
+                promise.reject("Exception", ErrorMessage)
+            }
+        }
     }
 
     @ReactMethod
@@ -298,6 +315,9 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
             result.putBoolean("isNotificationEnabled", en.isNotificationEnabled)
             result.putBoolean("isUserRegistered", en.isUserRegistered)
             result.putString("pendingIntentClassName", en.pendingIntentClassName)
+            result.putString("snoozeNotificationTimeInMinutes", en.snoozeNotificationTimeInMinutes.toString())
+            result.putString("snoozeContentTimeInHours", en.snoozeContentTimeInHours.toString())
+            result.putString("pendingIntentClassName", en.pendingIntentClassName)
             val tags: List<Tag> = getEngage()?.config().userConfig.getTags()
             val arrTag = WritableNativeArray()
             for (tag in tags) {
@@ -428,10 +448,49 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
         }
     }
 
+    @ReactMethod
+    fun setSnoozeContent(snoozeValue: String){
+        try {
+            Log.e("ChangeSnoozeValue", "${snoozeValue}")
+            Engage.getInstance()?.config()?.snoozeContent(snoozeValue.toLong())
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    @ReactMethod
+    fun setSnoozeNotifications(snoozeValue: String){
+        try {
+            Log.e("ChangeSnoozeValue", "${snoozeValue}")
+            Engage.getInstance()?.config()?.snoozeNotifications(snoozeValue.toLong())
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun getConstants(): Map<String, Any>? {
         val constants = HashMap<String, Any>()
         constants.put(IS_INITIALIZED, Engage.isInitialized)
         constants.put(IS_USER_REGISTERED, Engage.getInstance()?.isUserRegistered == true)
         return constants
+    }
+
+    companion object {
+        @JvmStatic
+        fun onNotificationTapped(reactContext: ReactContext?, intent: Intent?) {
+            intent ?: run {
+                Log.e("ERROR", "Received Null intent")
+                return
+            }
+            reactContext ?: run {
+                Log.e("ERROR", "React context is null, cannot process notifications")
+                return
+            }
+            val action: Action = intent.getParcelableExtra("action") ?: run {
+                Log.e("ERROR", "No Action found in the intent, cannot process notifications")
+                return
+            }
+            reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java).emit("onNotificationClicked", Gson().toJson(action).toString())
+        }
     }
 }

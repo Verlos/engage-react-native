@@ -77,6 +77,17 @@ async function fetchContentLocation(locationInfo) {
 }
 
 /**
+ * 
+ * @param {*} userInfo fetch content using notification data
+ */
+async function getContentForActions(userInfo) {
+  return await Platform.OS === 'android' ?
+    Engage.getContentForActions(JSON.stringify(userInfo)) :
+    Engage.getContentForActions(userInfo)
+}
+
+
+/**
  * remove enter and exit listeners
  */
 function removeBeaconListener() {
@@ -202,5 +213,8 @@ export default {
   setNotificationMode,
   setGeoLocationMode,
   fetchContentBeacon,
-  fetchContentLocation
+  fetchContentLocation,
+  getContentForActions,
+  setSnoozeNotifications: Engage.setSnoozeNotifications,
+  setSnoozeContent: Engage.setSnoozeContent
 };
