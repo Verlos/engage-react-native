@@ -37,7 +37,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     private val gson: Gson by lazy { GsonBuilder().setLenient().setPrettyPrinting().create() }
 
     override fun getName(): String {
-        return "Engage"
+        return "EngageModule"
     }
 
     @ReactMethod

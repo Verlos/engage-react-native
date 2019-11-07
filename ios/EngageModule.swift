@@ -3,8 +3,8 @@ import EngageSDK
 import CoreLocation
 //Note that for objective-c (and therefore RN) to see the class you need to give the @objc hint
 //Also, any method exposed to objective-c runtime will also require the hint.
-@objc(Engage)
-class Engage: RCTEventEmitter {
+@objc(EngageModule)
+class EngageModule: RCTEventEmitter {
     //Demonstrate a basic promise-based function in swift
     private let errorMessage: String = "Engage SDK initialization missing or entered invalid API Key, please try again"
     private let ISINITIALIZED : String = "isInitialized"

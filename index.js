@@ -1,5 +1,5 @@
 import { Platform, NativeModules, DeviceEventEmitter, NativeEventEmitter } from 'react-native';
-const { Engage } = NativeModules;
+const { EngageModule } = NativeModules;
 
 /**
  * Initializes the engage sdk
@@ -12,7 +12,7 @@ const { Engage } = NativeModules;
  * @param {*} promise function that returns boolean value or error
  */
 async function initialize(apiKey, appName, regionId, clientId, uuid) {
-  return await Engage.initialize(apiKey, appName, regionId, clientId, uuid)
+  return await EngageModule.initialize(apiKey, appName, regionId, clientId, uuid)
 }
 
 /**
@@ -23,7 +23,7 @@ async function initialize(apiKey, appName, regionId, clientId, uuid) {
  * @param {*} promise function that returns boolean value or error
  */
 async function registerUser(birthDate, gender = null) {
-  return await Engage.registerUser(birthDate, gender);
+  return await EngageModule.registerUser(birthDate, gender);
 };
 
 
@@ -34,16 +34,16 @@ async function registerUser(birthDate, gender = null) {
  * @param {*} promise function that returns boolean value or error
  */
 async function updateUser(birthDate, gender = null, tags = null) {
-  return await Engage.updateUser(birthDate, gender, tags);
+  return await EngageModule.updateUser(birthDate, gender, tags);
 };
 
 /**
  * detect beacon start, if scan is stopped then start scan 
  */
 function startScan() {
-  Engage.isScanOnGoing().then((isGoing) => {
+  EngageModule.isScanOnGoing().then((isGoing) => {
     if (!isGoing) {
-      Engage.startScan();
+      EngageModule.startScan();
     }
   })
 }
@@ -54,7 +54,7 @@ function startScan() {
  * @param {*} promise function that returns boolean value or error
  */
 async function stopScan() {
-  return await Engage.stopScan()
+  return await EngageModule.stopScan()
 }
 
 /**
@@ -62,8 +62,8 @@ async function stopScan() {
  */
 async function fetchContentBeacon(beaconInfo) {
   return await Platform.OS === 'android' ?
-    Engage.fetchContentBeacon(JSON.stringify(beaconInfo)) :
-    Engage.fetchContentBeacon(beaconInfo)
+    EngageModule.fetchContentBeacon(JSON.stringify(beaconInfo)) :
+    EngageModule.fetchContentBeacon(beaconInfo)
 }
 
 /**
@@ -72,8 +72,8 @@ async function fetchContentBeacon(beaconInfo) {
  */
 async function fetchContentLocation(locationInfo) {
   return await Platform.OS === 'android' ?
-    Engage.fetchContentLocation(JSON.stringify(locationInfo)) :
-    Engage.fetchContentLocation(locationInfo)
+    EngageModule.fetchContentLocation(JSON.stringify(locationInfo)) :
+    EngageModule.fetchContentLocation(locationInfo)
 }
 
 /**
@@ -82,8 +82,8 @@ async function fetchContentLocation(locationInfo) {
  */
 async function getContentForActions(userInfo) {
   return await Platform.OS === 'android' ?
-    Engage.getContentForActions(JSON.stringify(userInfo)) :
-    Engage.getContentForActions(userInfo)
+    EngageModule.getContentForActions(JSON.stringify(userInfo)) :
+    EngageModule.getContentForActions(userInfo)
 }
 
 
@@ -102,7 +102,7 @@ function removeBeaconListener() {
  * @param {*} promise function that returns boolean value or error
  */
 async function isScanOnGoing() {
-  return await Engage.isScanOnGoing()
+  return await EngageModule.isScanOnGoing()
 }
 
 /**
@@ -112,7 +112,7 @@ async function isScanOnGoing() {
  * @param {*} promise function that returns boolean value or error
  */
 async function updateApiKey(apiKey) {
-  return await Engage.updateApiKey(apiKey)
+  return await EngageModule.updateApiKey(apiKey)
 }
 
 /**
@@ -121,7 +121,7 @@ async function updateApiKey(apiKey) {
  * @param {*} promise function that returns boolean value or error
  */
 async function logout() {
-  return await Engage.logout()
+  return await EngageModule.logout()
 }
 
 /**
@@ -131,7 +131,7 @@ async function logout() {
  * @param {*} promise function that returns boolean value or error
  */
 async function updateBeaconUUID(uuidString) {
-  return await Engage.updateBeaconUUID(uuidString);
+  return await EngageModule.updateBeaconUUID(uuidString);
 }
 
 /**
@@ -142,7 +142,7 @@ async function updateBeaconUUID(uuidString) {
  * @param {*} promise function that returns boolean value or error
  */
 async function setRegionParams(uuid, regionIdentifier) {
-  return await Engage.setRegionParams(uuid, regionIdentifier)
+  return await EngageModule.setRegionParams(uuid, regionIdentifier)
 }
 
 /**
@@ -156,7 +156,7 @@ async function setRegionParams(uuid, regionIdentifier) {
  * isUserRegistered, pendingIntentClassName
  */
 async function config() {
-  return await Engage.config();
+  return await EngageModule.config();
 }
 
 /**
@@ -164,27 +164,27 @@ async function config() {
  * @param {*} enable background scan mode to keep scanning even when the app is not in foreground, Settings background mode enabled, it will also start scan on device boot
  */
 function setBackgroundMode(enable) {
-  Engage.setBackgroundMode(enable);
+  EngageModule.setBackgroundMode(enable);
 }
 
 /**
  * @param {*} enable It displays notifications on scan results and those notifications leads back to main app.
  */
 function setNotificationMode(enable) {
-  Engage.setNotificationMode(enable);
+  EngageModule.setNotificationMode(enable);
 }
 
 /**
  * @param {*} enable It set geolocation mode enable disvale.
  */
 function setGeoLocationMode(enable) {
-  Engage.setGeoLocationMode(enable);
+  EngageModule.setGeoLocationMode(enable);
 }
 
 /**
  * addListeners for enterBeacon and exitBeacon
  */
-const engageModule = new NativeEventEmitter(Engage)
+const engageModule = new NativeEventEmitter(EngageModule)
 function addListener(evantName, listener) {
   engageModule.addListener(evantName, (beaconInfo) => {
     const info = Platform.OS === 'ios' ? beaconInfo : JSON.parse(beaconInfo)
@@ -192,22 +192,21 @@ function addListener(evantName, listener) {
   });
 }
 
-export default {
-  // parsers constants
+const Engage = {
   initialize,
-  isInitialized: Engage.isInitialized,
+  isInitialized: EngageModule.isInitialized,
   isScanOnGoing,
   startScan,
   stopScan,
   updateApiKey,
   logout,
-  setRegionParams: Engage.setRegionParams,
+  setRegionParams: EngageModule.setRegionParams,
   config,
   registerUser,
   updateUser,
   updateBeaconUUID,
   removeBeaconListener,
-  isUserRegistered: Engage.isUserRegistered,
+  isUserRegistered: EngageModule.isUserRegistered,
   addListener,
   setBackgroundMode,
   setNotificationMode,
@@ -215,6 +214,8 @@ export default {
   fetchContentBeacon,
   fetchContentLocation,
   getContentForActions,
-  setSnoozeNotifications: Engage.setSnoozeNotifications,
-  setSnoozeContent: Engage.setSnoozeContent
+  setSnoozeNotifications: EngageModule.setSnoozeNotifications,
+  setSnoozeContent: EngageModule.setSnoozeContent
 };
+
+export default Engage;

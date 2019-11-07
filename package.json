@@ -1,6 +1,6 @@
 {
-  "name": "react-native-engage",
-  "title": "React Native Engage",
+  "name": "react-native-proximipro-engage",
+  "title": "React Native ProximiPro Engage",
   "version": "1.0.0",
   "description": "TODO",
   "main": "index.js",
@@ -13,7 +13,10 @@
     "baseUrl": "https://github.com/github_account/react-native-engage"
   },
   "keywords": [
-    "react-native"
+    "react-native-proximipro-engage",
+    "react-native",
+    "ProximiPro Engage SDK",
+    "Engage SDK"
   ],
   "author": {
     "name": "Your Name",

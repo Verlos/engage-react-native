@@ -3,11 +3,11 @@ require "json"
 package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 
 Pod::Spec.new do |s|
-  s.name         = "react-native-engage"
+  s.name         = "react-native-proximipro-engage"
   s.version      = package["version"]
   s.summary      = package["description"]
   s.description  = <<-DESC
-                  react-native-engage
+                  react-native-proximipro-engage
                    DESC
   s.homepage     = "https://github.com/simformsolutions/iOS-EngageSDK.git"
   s.license      = "MIT"

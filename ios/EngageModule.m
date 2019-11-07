@@ -1,7 +1,7 @@
 #import <React/RCTViewManager.h>
 #import <React/RCTEventEmitter.h>
 #import <React/RCTBridgeModule.h>
-@interface RCT_EXTERN_MODULE(Engage, RCTEventEmitter)
+@interface RCT_EXTERN_MODULE(EngageModule, RCTEventEmitter)
 
 RCT_EXTERN_METHOD(initialize:(NSString *)apiKey AppName:(NSString *)appName RegionId:(NSString *)regionId ClientId:(NSString *)clientId UUID:(NSString *)uuid initializeWithResolve: (RCTPromiseResolveBlock)resolve initializeWithReject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(registerUser:(NSString *)birthDate Gender:(NSString *)gender registerWithResolve: (RCTPromiseResolveBlock)resolve registerWithReject:(RCTPromiseRejectBlock)reject)
