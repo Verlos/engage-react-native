@@ -9,18 +9,21 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-engage.git",
-    "baseUrl": "https://github.com/github_account/react-native-engage"
+    "url": "git+https://github.com/Verlos/engage-react-native.git",
+    "baseUrl": "https://github.com/Verlos/engage-react-native"
   },
   "keywords": [
     "react-native-proximipro-engage",
     "react-native",
     "ProximiPro Engage SDK",
-    "Engage SDK"
+    "Proximity",
+    "iBeacon",
+    "Beacon",
+    "Bluetooth"
   ],
   "author": {
-    "name": "Your Name",
-    "email": "yourname@email.com"
+    "name": "ProximiPRO",
+    "email": "support@proximipro.com"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",
