@@ -2,25 +2,28 @@
   "name": "react-native-proximipro-engage",
   "title": "React Native ProximiPro Engage",
   "version": "1.0.0",
-  "description": "TODO",
+  "description": "Proximipro engage is react native wrapper which can allow you to make application for Proximipro beacons.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/github_account/react-native-engage.git",
-    "baseUrl": "https://github.com/github_account/react-native-engage"
+    "url": "git+https://github.com/Verlos/engage-react-native.git",
+    "baseUrl": "https://github.com/Verlos/engage-react-native"
   },
   "keywords": [
     "react-native-proximipro-engage",
     "react-native",
     "ProximiPro Engage SDK",
-    "Engage SDK"
+    "Proximity",
+    "iBeacon",
+    "Beacon",
+    "Bluetooth"
   ],
   "author": {
-    "name": "Your Name",
-    "email": "yourname@email.com"
+    "name": "ProximiPRO",
+    "email": "support@proximipro.com"
   },
   "license": "MIT",
   "licenseFilename": "LICENSE",
