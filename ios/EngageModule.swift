@@ -19,7 +19,7 @@ class EngageModule: RCTEventEmitter {
             resolve(true)
         }) { (message) in
             print("SDK fail")
-            resolve(false)
+            resolve(false)
         }
     }
     
