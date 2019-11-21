@@ -22,6 +22,7 @@ import com.proximipro.engage.android.model.common.Action
 import com.proximipro.engage.android.model.common.Rule
 import com.proximipro.engage.android.util.Gender
 import com.proximipro.engage.android.util.InitializationCallback
+import com.proximipro.engage.android.util.NotificationData
 import com.proximipro.engage.android.util.getEngage
 import org.json.JSONArray
 import org.json.JSONException
@@ -60,6 +61,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
 
                 override fun onSuccess() {
                     super.onSuccess()
+                    getEngage().config().pendingIntentClassName =  "${reactContext.packageName}.MainActivity"
                     promise.resolve(true)
                 }
             })
@@ -109,13 +111,9 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
                     override fun onBeaconExit(beacon: ProBeacon) {
                         // onBeaconExit.invoke(true)
                         Log.e("BeaconExit", beacon.toString())
-                        val beaconInfo = WritableNativeMap()
-                        beaconInfo.putString("uuid", beacon.uuid)
-                        beaconInfo.putInt("major", beacon.major)
-                        beaconInfo.putInt("minor", beacon.minor)
-                        beaconInfo.putInt("rssi", beacon.rssi)
+                        val beaconJson = gson.toJson(beacon)
                         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
-                                .emit("onBeaconExit", beaconInfo)
+                                .emit("onBeaconExit", beaconJson)
                     }
 
                     override fun onLocationZoneEntered(rule: Rule, location: Location) {
@@ -468,6 +466,17 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
         }
     }
 
+    @ReactMethod
+    fun getInitialNotification(promise: Promise){
+        try {
+            Log.e("getInitialNotification", "${notificationData}")
+            promise.resolve(Gson().toJson(notificationData).toString())
+            notificationData = null
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun getConstants(): Map<String, Any>? {
         val constants = HashMap<String, Any>()
         constants.put(IS_INITIALIZED, Engage.isInitialized)
@@ -476,21 +485,21 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     }
 
     companion object {
+        private var notificationData: Action? = null
         @JvmStatic
-        fun onNotificationTapped(reactContext: ReactContext?, intent: Intent?) {
-            intent ?: run {
-                Log.e("ERROR", "Received Null intent")
-                return
+        fun onNotificationTapped(reactContext: ReactContext?, intent: Intent, isFromNew: Boolean) {
+            val data = NotificationData.from(intent)?: return
+            getEngage().recordNotificationTapEvent(data.rule)
+            if(isFromNew){
+                notificationData =  data.action
+            }else{
+                notificationData = null
             }
             reactContext ?: run {
                 Log.e("ERROR", "React context is null, cannot process notifications")
                 return
             }
-            val action: Action = intent.getParcelableExtra("action") ?: run {
-                Log.e("ERROR", "No Action found in the intent, cannot process notifications")
-                return
-            }
-            reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java).emit("onNotificationClicked", Gson().toJson(action).toString())
+            reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java).emit("onNotificationClicked", Gson().toJson(data.action).toString())
         }
     }
 }

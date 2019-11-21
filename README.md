@@ -147,13 +147,13 @@ After that, just run a `pod install` or `pod udpate` to get up and running with 
   public void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
     setIntent(intent);
-    EngageModule.onNotificationTapped(getReactNativeHost().getReactInstanceManager().getCurrentReactContext(), intent);
+    EngageModule.onNotificationTapped(getReactNativeHost().getReactInstanceManager().getCurrentReactContext(), intent, false);
   }
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    EngageModule.onNotificationTapped(getReactNativeHost().getReactInstanceManager().getCurrentReactContext(), getIntent());
+    EngageModule.onNotificationTapped(getReactNativeHost().getReactInstanceManager().getCurrentReactContext(), getIntent(), true);
   }
 ```
 
@@ -482,6 +482,19 @@ Engage.config().then((configInfo)=>{
  })
 ```
 ---
+### getInitialNotification(for android only)
+If your app is closed, you can check if it was opened by a notification being clicked / tapped / opened
+#### Example
+```js
+Engage.getInitialNotification().then((notificationOpen) => {
+	if (notificationOpen !== '') {
+		const notificationData = JSON.parse(notificationOpen);// need to convert into JSON parse
+		.... // calling getContentForActions function and get content from server
+		....
+	}
+```
+---
+
 ### setBackgroundMode
 Background scan mode to keep scanning even when the app is not in foreground, Settings background mode enabled, it will also start scan on device boot, default mode false
 #### Example
