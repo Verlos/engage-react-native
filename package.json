@@ -1,7 +1,7 @@
 {
   "name": "react-native-proximipro-engage",
   "title": "React Native ProximiPro Engage",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Proximipro engage is react native wrapper which can allow you to make application for Proximipro beacons.",
   "main": "index.js",
   "scripts": {
