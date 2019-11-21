@@ -160,6 +160,13 @@ async function config() {
 }
 
 /**
+ * If your app is closed, you can check if it was opened by a notification being clicked / tapped / opened
+ */
+async function getInitialNotification() {
+  return await EngageModule.getInitialNotification();
+}
+
+/**
  * 
  * @param {*} enable background scan mode to keep scanning even when the app is not in foreground, Settings background mode enabled, it will also start scan on device boot
  */
@@ -215,7 +222,8 @@ const Engage = {
   fetchContentLocation,
   getContentForActions,
   setSnoozeNotifications: EngageModule.setSnoozeNotifications,
-  setSnoozeContent: EngageModule.setSnoozeContent
+  setSnoozeContent: EngageModule.setSnoozeContent,
+  getInitialNotification
 };
 
 export default Engage;
