@@ -135,6 +135,34 @@ class EngageModule: RCTEventEmitter {
         }
     }
     
+    @objc func fetchContentNotification(_ url: NSString, fetchContentWithResolve resolve: @escaping RCTPromiseResolveBlock, fetchContentWithReject reject: @escaping RCTPromiseRejectBlock){
+        guard let manager = EngageSDK.shared else{
+            reject("exception", self.errorMessage, nil);
+            return
+        }
+        
+        
+        manager.callFetchForgroundContentApiForForgroundNotification(url: url as String) { (result) in
+            var arrResult = [Any]();
+            if let result = result{
+                result.forEach({ (item) in
+                    let dic = [
+                        "bigtext" : item.bigtext,
+                        "id" : item.id,
+                        "image" : item.image,
+                        "note1": item.note1,
+                        "note2" :item.note2,
+                        "title" : item.title,
+                        "type" : item.type,
+                        "url" :  item.url
+                    ]
+                    arrResult.append(dic)
+                })
+                resolve(arrResult as? NSArray)
+            }
+        }
+    }
+    
     @objc func startScan(){
         guard let manager = EngageSDK.shared else { return }
         if manager.locationManager == nil {
@@ -348,6 +376,16 @@ class EngageModule: RCTEventEmitter {
                     // reject("exception", self.errorMessage, nil);
                 }
             })
+        }
+    }
+    
+    @objc func callPushNotificationRegister(_ fcmToken: String, registerPushWithResolve resolve: @escaping RCTPromiseResolveBlock, registerPushWithReject reject: @escaping RCTPromiseRejectBlock){
+        guard let manager = EngageSDK.shared else {
+            reject("exception", self.errorMessage, nil);
+            return
+        }
+        manager.callPushNotificationRegister(pushToken: fcmToken) { (response) in
+            resolve(response)
         }
     }
     
