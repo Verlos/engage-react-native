@@ -78,6 +78,14 @@ async function fetchContentLocation(locationInfo) {
 
 /**
  * 
+ * @param {*} url get from notification data
+ */
+async function fetchContentNotification(url) {
+  return await EngageModule.fetchContentNotification(url)
+}
+
+/**
+ * 
  * @param {*} userInfo fetch content using notification data
  */
 async function getContentForActions(userInfo) {
@@ -86,6 +94,13 @@ async function getContentForActions(userInfo) {
     EngageModule.getContentForActions(userInfo)
 }
 
+/**
+ * @param {*}fcmToken fcm token for notification registration
+ */
+
+async function callPushNotificationRegister(fcmToken) {
+  return await EngageModule.callPushNotificationRegister(fcmToken)
+}
 
 /**
  * remove enter and exit listeners
@@ -223,7 +238,9 @@ const Engage = {
   getContentForActions,
   setSnoozeNotifications: EngageModule.setSnoozeNotifications,
   setSnoozeContent: EngageModule.setSnoozeContent,
-  getInitialNotification
+  getInitialNotification,
+  callPushNotificationRegister,
+  fetchContentNotification
 };
 
 export default Engage;
