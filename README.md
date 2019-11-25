@@ -373,6 +373,25 @@ Engage.fetchContentBeacon(beaconInfo).then((beaconContent)=>{
 ```
 ---
 
+
+### fetchContentNotification
+Fetch Content using notification data's url from engage SDK server
+
+#### Example
+```js
+Engage.fetchContentNotification(url).then((notificationContent)=>{
+ // array of location based content
+ // for android = JSON.parse(notificationContent)
+	if (Platform.OS === 'android') {
+		console.log(JSON.parse(notificationContent))
+	} else {
+		// for ios = No need to parsing
+		console.log(notificationContent)
+	}
+ });
+```
+---
+
 ### getContentForActions
 When notification is receive passing notification data and get content from engage SDK server
 #### Example
@@ -494,7 +513,13 @@ Engage.getInitialNotification().then((notificationOpen) => {
 	}
 ```
 ---
-
+### callPushNotificationRegister
+Register fcm token into SDK for sending push notifications
+#### Example
+```js
+Engage.callPushNotificationRegister(fcmToken)
+```
+---
 ### setBackgroundMode
 Background scan mode to keep scanning even when the app is not in foreground, Settings background mode enabled, it will also start scan on device boot, default mode false
 #### Example

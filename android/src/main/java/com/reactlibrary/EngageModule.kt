@@ -190,6 +190,20 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
         }
     }
 
+    @ReactMethod
+    fun fetchContentNotification(url: String, promise: Promise){
+        try {
+            getEngage().getContentLoader().fetchContent(url) onSuccess {
+                val jsonArray = gson.toJson(it)
+                promise.resolve(jsonArray)
+            }onFailure {
+                promise.reject("Exception", ErrorMessage)
+            }
+        }catch (e: Exception){
+            promise.reject("Exception", ErrorMessage)
+        }
+    }
+
 
     @ReactMethod
     fun stopScan(promise: Promise) {
@@ -467,13 +481,23 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     }
 
     @ReactMethod
-    fun getInitialNotification(promise: Promise){
+    fun getInitialNotification
+            (promise: Promise){
         try {
             Log.e("getInitialNotification", "${notificationData}")
             promise.resolve(Gson().toJson(notificationData).toString())
             notificationData = null
         } catch (e: Exception) {
             e.printStackTrace()
+        }
+    }
+
+    @ReactMethod
+    fun callPushNotificationRegister(fcmToken: String, promise: Promise){
+        try {
+            getEngage().registerPushToken(fcmToken)
+        } catch (e: Exception) {
+            promise.reject("Exception", ErrorMessage)
         }
     }
 
