@@ -10,6 +10,8 @@ RCT_EXTERN_METHOD(fetchContentBeacon:(NSDictionary *)beaconInfo fetchContentWith
 RCT_EXTERN_METHOD(fetchContentNotification:(NSString *)url fetchContentWithResolve: (RCTPromiseResolveBlock)resolve fetchContentWithReject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(fetchContentLocation:(NSDictionary *)locationInfo fetchContentWithResolve: (RCTPromiseResolveBlock)resolve fetchContentWithReject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(getContentForActions:(NSDictionary *)userInfo onPromitionWithResolve: (RCTPromiseResolveBlock)resolve onPromitionWithReject:(RCTPromiseRejectBlock)reject)
+RCT_EXTERN_METHOD(logEvent:(NSString *)logType ContentId: (NSString *)contentId ContenType:(NSString *)contentType Param2:(NSString *)param2)
+RCT_EXTERN_METHOD(logNotificationEvent:(NSString *)notificationId Action:(NSString *)action)
 RCT_EXTERN_METHOD(callPushNotificationRegister:(NSString *)fcmToken registerPushWithResolve: (RCTPromiseResolveBlock)resolve registerPushWithReject:(RCTPromiseRejectBlock)reject)
 RCT_EXTERN_METHOD(startScan)
 RCT_EXTERN_METHOD(stopScan:(RCTPromiseResolveBlock)resolve stopWithReject:(RCTPromiseRejectBlock)reject)

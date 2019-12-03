@@ -408,6 +408,26 @@ Engage.getContentForActions(notificationInfo).then((result)=>{
  });
 ```
 ---
+### logEvent
+* logType  // Social or fav or details
+* contentId // contentid
+* contentType // content.type or image or video or custom
+* param2 // blank for now 
+Log event when user open contentdetails, add favourites and share
+#### Example
+```js
+Engage.logEvent(logType, contentId, contentType, param2)
+```
+---
+### logNotificationEvent
+Log event when user tap on remote notification
+* notificationId // notification id from notification data
+* action //Open
+#### Example
+```js
+EngageModule.logNotificationEvent(notificationId, action)
+```
+---
 ### isScanOnGoing
 Check beacon scanning or not, it returns callback function with scan status (boolean).
 
