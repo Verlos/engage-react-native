@@ -204,6 +204,28 @@ function setGeoLocationMode(enable) {
 }
 
 /**
+ * function for log events
+ * 
+ * @param {*} logType  // Social || fav || details
+ * @param {*} contentId // contentid
+ * @param {*} contentType // content.type or image | video | custom
+ * @param {*} param2 // blank for now
+ */
+function logEvent(logType, contentId, contentType, param2) {
+  EngageModule.logEvent(logType, contentId, contentType, param2)
+}
+
+/**
+ * function for log event on remote notification tap(sended by dashboard)
+ * 
+ * @param {*} notificationId // Notification id
+ * @param {*} action // open
+ */
+function logNotificationEvent(notificationId, action) {
+  EngageModule.logNotificationEvent(notificationId, action)
+}
+
+/**
  * addListeners for enterBeacon and exitBeacon
  */
 const engageModule = new NativeEventEmitter(EngageModule)
@@ -240,7 +262,9 @@ const Engage = {
   setSnoozeContent: EngageModule.setSnoozeContent,
   getInitialNotification,
   callPushNotificationRegister,
-  fetchContentNotification
+  fetchContentNotification,
+  logEvent,
+  logNotificationEvent
 };
 
 export default Engage;

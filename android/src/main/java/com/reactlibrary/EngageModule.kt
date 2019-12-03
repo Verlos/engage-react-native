@@ -20,14 +20,13 @@ import com.proximipro.engage.android.model.ProBeacon
 import com.proximipro.engage.android.model.Tag
 import com.proximipro.engage.android.model.common.Action
 import com.proximipro.engage.android.model.common.Rule
-import com.proximipro.engage.android.util.Gender
-import com.proximipro.engage.android.util.InitializationCallback
-import com.proximipro.engage.android.util.NotificationData
-import com.proximipro.engage.android.util.getEngage
+import com.proximipro.engage.android.model.remote.Content
+import com.proximipro.engage.android.util.*
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
+
 
 
 class EngageModule(private val reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
@@ -36,6 +35,8 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
     private val IS_INITIALIZED = "isInitialized"
     private val IS_USER_REGISTERED = "isUserRegistered"
     private val gson: Gson by lazy { GsonBuilder().setLenient().setPrettyPrinting().create() }
+    private var latestBeacon: ProBeacon? = null
+    private var latestRule: Rule? = null
 
     override fun getName(): String {
         return "EngageModule"
@@ -101,6 +102,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
                 getEngage()?.startScan(currentActivity as AppCompatActivity, object : BeaconScanResultListener() {
                     override fun onBeaconCamped(beacon: ProBeacon) {
                         if (reactContext != null) {
+                            latestBeacon = beacon
                             Log.e("BeaconEnter", beacon.toString())
                             val beaconJson = gson.toJson(beacon)
                             reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -109,7 +111,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
                     }
 
                     override fun onBeaconExit(beacon: ProBeacon) {
-                        // onBeaconExit.invoke(true)
+                        latestBeacon = beacon
                         Log.e("BeaconExit", beacon.toString())
                         val beaconJson = gson.toJson(beacon)
                         reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter::class.java)
@@ -117,6 +119,7 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
                     }
 
                     override fun onLocationZoneEntered(rule: Rule, location: Location) {
+                        latestRule = rule
                         val beaconInfo = WritableNativeMap()
                         Log.e("BeaconLocation", beaconInfo.toString())
                         val json = """
@@ -203,6 +206,36 @@ class EngageModule(private val reactContext: ReactApplicationContext) : ReactCon
             promise.reject("Exception", ErrorMessage)
         }
     }
+
+    @ReactMethod
+    fun logEvent(logType: String, contentId: String, contentType: String, param2: String){
+        try {
+            var logContentType: LogEventType = LogEventType.Details
+            if(logType == "fav"){
+                logContentType = LogEventType.Favourites
+            }else if(logType == "social"){
+                logContentType = LogEventType.Social
+            }
+            latestBeacon?.let {
+                getEngage().logContentTapEvent(logContentType, Content
+                (id = contentId, type = contentType), it )
+            } ?: latestRule?.let {
+                getEngage().logContentTapEvent(LogEventType.Details, Content(id = contentId, type = contentType), it )
+            } ?: Log.e("ERROR", "Both beacon and rule are null, can't log tap event")
+        }catch (e: Exception){
+
+        }
+    }
+
+    @ReactMethod
+    fun logNotificationEvent(notificationId: String, action: String){
+        try {
+            getEngage().logPushOpenEvent(notificationId)
+        }catch (e: Exception){
+
+        }
+    }
+
 
 
     @ReactMethod

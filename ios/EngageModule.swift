@@ -10,6 +10,8 @@ class EngageModule: RCTEventEmitter {
     private let ISINITIALIZED : String = "isInitialized"
     private let ISUSERREGISTERED : String = "isUserRegistered"
     private let locationManager = CLLocationManager()
+    private var latestBeacon: FilterBeacon?
+    private var latestLocation: CLLocationCoordinate2D?
     @objc
     func initialize(_ apiKey: String, AppName appName: String, RegionId regionId: String, ClientId clientId: String, UUID uuid: String, initializeWithResolve resolve : @escaping RCTPromiseResolveBlock, initializeWithReject reject: @escaping RCTPromiseRejectBlock){
         print("initialize with apiKey: \(apiKey) and uuid: \(uuid)")
@@ -306,6 +308,8 @@ class EngageModule: RCTEventEmitter {
     func setupBeaconMoitorBlock() {
         guard let manager = EngageSDK.shared else { return }
         manager.onBeaconCamped = { beacon, location in
+            self.latestBeacon = beacon
+            self.latestLocation = location
             print("Entry beacon \(beacon)")
             let beaconInfo = NSMutableDictionary();
             beaconInfo.setValue(location?.latitude.description, forKey: "latitude")
@@ -318,6 +322,8 @@ class EngageModule: RCTEventEmitter {
         }
         
         manager.onBeaconExit = { beacon, location in
+            self.latestBeacon = beacon
+            self.latestLocation = location
             print("Exit beacon \(beacon)")
             let beaconInfo = NSMutableDictionary();
             beaconInfo.setValue(location?.latitude.description, forKey: "latitude")
@@ -369,8 +375,8 @@ class EngageModule: RCTEventEmitter {
                                  "note2" :response.note2,
                                  "title" : response.title,
                                  "type" : response.type,
+                                 "description": response.description ?? "",
                                  "url" :  response.url]
-                    
                     //resolve(data)
                 }else{
                     // reject("exception", self.errorMessage, nil);
@@ -406,7 +412,6 @@ class EngageModule: RCTEventEmitter {
                                  "title" : response.title,
                                  "type" : response.type,
                                  "url" :  response.url]
-                    
                     resolve(data)
                 }else{
                     reject("exception", self.errorMessage, nil);
@@ -415,6 +420,24 @@ class EngageModule: RCTEventEmitter {
         }
         manager.handleNotification(userInfo: userInfo as! [AnyHashable : Any]) {
             print("handleNotification")
+        }
+    }
+    
+    @objc func logEvent(_ logType: String, ContentId contentId: String, ContenType contentType: String, Param2 param2:String){
+        guard let manager = EngageSDK.shared else {
+            return
+        }
+        manager.callLogEvent(logType: LogType.init(rawValue: logType) ?? .details, contentId: contentId, contentType: contentType, param2: param2, beacon: latestBeacon, location: latestLocation) { (response) in
+            print("Log event : \(logType)",response ?? "")
+        }
+    }
+    
+    @objc func logNotificationEvent(_ notificationId: String, Action action: String){
+        guard let manager = EngageSDK.shared else {
+            return
+        }
+        manager.callLogPushNotification(notificationId: notificationId, action: action) { (response) in
+            print("Log Notification event",response ?? "")
         }
     }
     
