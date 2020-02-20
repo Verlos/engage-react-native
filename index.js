@@ -1,6 +1,7 @@
 import { Platform, NativeModules, DeviceEventEmitter, NativeEventEmitter } from 'react-native';
 const { EngageModule } = NativeModules;
-
+const engageModule = new NativeEventEmitter(EngageModule)
+let subscription = {};
 /**
  * Initializes the engage sdk
  * 
@@ -14,7 +15,6 @@ const { EngageModule } = NativeModules;
 async function initialize(apiKey, appName, regionId, clientId, uuid) {
   return await EngageModule.initialize(apiKey, appName, regionId, clientId, uuid)
 }
-
 /**
  * Registers new user by making api call to server.
  * 
@@ -25,8 +25,6 @@ async function initialize(apiKey, appName, regionId, clientId, uuid) {
 async function registerUser(birthDate, gender = null) {
   return await EngageModule.registerUser(birthDate, gender);
 };
-
-
 /**
  * 
  * @param {*} birthDate update birthdate into timestamp formate
@@ -36,7 +34,6 @@ async function registerUser(birthDate, gender = null) {
 async function updateUser(birthDate, gender = null, tags = null) {
   return await EngageModule.updateUser(birthDate, gender, tags);
 };
-
 /**
  * detect beacon start, if scan is stopped then start scan 
  */
@@ -47,7 +44,6 @@ function startScan() {
     }
   })
 }
-
 /**
  * Stops the ongoing beacon scan
  * 
@@ -56,7 +52,6 @@ function startScan() {
 async function stopScan() {
   return await EngageModule.stopScan()
 }
-
 /**
  * @param {*} beaconInfo fetch content using beacon
  */
@@ -65,7 +60,6 @@ async function fetchContentBeacon(beaconInfo) {
     EngageModule.fetchContentBeacon(JSON.stringify(beaconInfo)) :
     EngageModule.fetchContentBeacon(beaconInfo)
 }
-
 /**
  * 
  * @param {*} locationInfo fetch content using location
@@ -75,7 +69,6 @@ async function fetchContentLocation(locationInfo) {
     EngageModule.fetchContentLocation(JSON.stringify(locationInfo)) :
     EngageModule.fetchContentLocation(locationInfo)
 }
-
 /**
  * 
  * @param {*} url get from notification data
@@ -83,7 +76,6 @@ async function fetchContentLocation(locationInfo) {
 async function fetchContentNotification(url) {
   return await EngageModule.fetchContentNotification(url)
 }
-
 /**
  * 
  * @param {*} userInfo fetch content using notification data
@@ -93,24 +85,18 @@ async function getContentForActions(userInfo) {
     EngageModule.getContentForActions(JSON.stringify(userInfo)) :
     EngageModule.getContentForActions(userInfo)
 }
-
 /**
  * @param {*}fcmToken fcm token for notification registration
  */
-
 async function callPushNotificationRegister(fcmToken) {
   return await EngageModule.callPushNotificationRegister(fcmToken)
 }
-
 /**
  * remove enter and exit listeners
  */
 function removeBeaconListener() {
-  DeviceEventEmitter.removeListener('onBeaconEnter');
-  DeviceEventEmitter.removeListener('onBeaconExit');
-  DeviceEventEmitter.removeListener('onBeaconLocation');
+  Object.values(subscription).forEach((subs) => subs?.remove())
 }
-
 /**
  * check beacon scanning or not, it returns callback function with scan status (boolean).
  * 
@@ -119,7 +105,6 @@ function removeBeaconListener() {
 async function isScanOnGoing() {
   return await EngageModule.isScanOnGoing()
 }
-
 /**
  * Updates the api key by verifying it before setting it
  * 
@@ -129,7 +114,6 @@ async function isScanOnGoing() {
 async function updateApiKey(apiKey) {
   return await EngageModule.updateApiKey(apiKey)
 }
-
 /**
  * logout from engage sdk
  * 
@@ -138,7 +122,6 @@ async function updateApiKey(apiKey) {
 async function logout() {
   return await EngageModule.logout()
 }
-
 /**
  * Updates beacon uuid by verifying the structure
  * 
@@ -148,7 +131,6 @@ async function logout() {
 async function updateBeaconUUID(uuidString) {
   return await EngageModule.updateBeaconUUID(uuidString);
 }
-
 /**
  * Sets region params like uuid and region identifier which is used to identify region
  * 
@@ -159,7 +141,6 @@ async function updateBeaconUUID(uuidString) {
 async function setRegionParams(uuid, regionIdentifier) {
   return await EngageModule.setRegionParams(uuid, regionIdentifier)
 }
-
 /**
  * Provides configuration object that the sdk uses for internal configuration
  * 
@@ -173,14 +154,12 @@ async function setRegionParams(uuid, regionIdentifier) {
 async function config() {
   return await EngageModule.config();
 }
-
 /**
  * If your app is closed, you can check if it was opened by a notification being clicked / tapped / opened
  */
 async function getInitialNotification() {
   return await EngageModule.getInitialNotification();
 }
-
 /**
  * 
  * @param {*} enable background scan mode to keep scanning even when the app is not in foreground, Settings background mode enabled, it will also start scan on device boot
@@ -188,25 +167,22 @@ async function getInitialNotification() {
 function setBackgroundMode(enable) {
   EngageModule.setBackgroundMode(enable);
 }
-
 /**
  * @param {*} enable It displays notifications on scan results and those notifications leads back to main app.
  */
 function setNotificationMode(enable) {
   EngageModule.setNotificationMode(enable);
 }
-
 /**
  * @param {*} enable It set geolocation mode enable disvale.
  */
 function setGeoLocationMode(enable) {
   EngageModule.setGeoLocationMode(enable);
 }
-
 /**
  * function for log events
  * 
- * @param {*} logType  // Social || fav || details
+ * @param {*} logType // Social || fav || details
  * @param {*} contentId // contentid
  * @param {*} contentType // content.type or image | video | custom
  * @param {*} param2 // blank for now
@@ -214,7 +190,6 @@ function setGeoLocationMode(enable) {
 function logEvent(logType, contentId, contentType, param2) {
   EngageModule.logEvent(logType, contentId, contentType, param2)
 }
-
 /**
  * function for log event on remote notification tap(sended by dashboard)
  * 
@@ -224,18 +199,15 @@ function logEvent(logType, contentId, contentType, param2) {
 function logNotificationEvent(notificationId, action) {
   EngageModule.logNotificationEvent(notificationId, action)
 }
-
 /**
  * addListeners for enterBeacon and exitBeacon
  */
-const engageModule = new NativeEventEmitter(EngageModule)
 function addListener(evantName, listener) {
-  engageModule.addListener(evantName, (beaconInfo) => {
+  subscription[evantName] = engageModule.addListener(evantName, (beaconInfo) => {
     const info = Platform.OS === 'ios' ? beaconInfo : JSON.parse(beaconInfo)
     listener(info);
   });
 }
-
 const Engage = {
   initialize,
   isInitialized: EngageModule.isInitialized,
@@ -266,5 +238,4 @@ const Engage = {
   logEvent,
   logNotificationEvent
 };
-
 export default Engage;
